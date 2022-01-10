@@ -1,0 +1,16 @@
+package infrastructure.client;
+
+import infrastructure.SystemContext;
+import infrastructure.handler.request.RequestHandler;
+
+import java.io.IOException;
+import java.net.InetAddress;
+
+public interface RemoteClient<T> {
+
+    void unicast(byte[] message, InetAddress ip, int port) throws IOException;
+
+    void broadcast(byte[] message) throws IOException;
+
+    void listen(int port, SystemContext context, RequestHandler<T> requestHandler);
+}
