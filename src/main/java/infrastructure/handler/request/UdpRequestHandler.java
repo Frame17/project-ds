@@ -1,6 +1,5 @@
 package infrastructure.handler.request;
 
-import infrastructure.Node;
 import infrastructure.SystemContext;
 import infrastructure.handler.message.MessageHandler;
 
