@@ -1,6 +1,6 @@
 package infrastructure.client;
 
-import infrastructure.SystemContext;
+import infrastructure.system.SystemContext;
 import infrastructure.handler.request.RequestHandler;
 
 import java.io.IOException;
@@ -12,5 +12,5 @@ public interface RemoteClient<T> {
 
     void broadcast(byte[] message) throws IOException;
 
-    void listen(int port, SystemContext context, RequestHandler<T> requestHandler);
+    void listen(SystemContext context, RequestHandler<T> requestHandler, int port);
 }

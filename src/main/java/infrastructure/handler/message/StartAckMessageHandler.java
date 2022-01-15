@@ -1,19 +1,18 @@
 package infrastructure.handler.message;
 
 import infrastructure.Command;
-import infrastructure.SystemContext;
 import infrastructure.client.RemoteClient;
+import infrastructure.system.Leader;
+import infrastructure.system.SystemContext;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Arrays;
+import java.nio.ByteBuffer;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
-import static infrastructure.Node.LISTEN_PORT;
 
 public class StartAckMessageHandler implements MessageHandler {
     private final RemoteClient<DatagramPacket> client;
@@ -24,13 +23,22 @@ public class StartAckMessageHandler implements MessageHandler {
 
     @Override
     public void handle(SystemContext context, DatagramPacket packet) {
+        context.setLeader(extractLeader(packet.getData()));
+        startHealthCheck(context);
+    }
+
+    // todo - move to Payload Converter
+    private Leader extractLeader(byte[] message) {
         try {
-            byte[] bytes = Arrays.copyOfRange(packet.getData(), 1, packet.getData().length);
-            InetAddress leader = InetAddress.getByAddress(bytes);
-            context.setLeader(leader);
-            startHealthCheck(context);
+            ByteBuffer buffer = ByteBuffer.wrap(message, 1, message.length - 1);
+            short leaderPort = buffer.getShort();
+            byte[] leaderIp = new byte[4 * Byte.BYTES];
+            buffer.get(leaderIp);
+            InetAddress leader = InetAddress.getByAddress(leaderIp);
+
+            return new Leader(leader, leaderPort);
         } catch (UnknownHostException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -38,7 +46,7 @@ public class StartAckMessageHandler implements MessageHandler {
         ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(1);
         threadPool.schedule(() -> {
             try {
-                client.unicast(new byte[]{Command.HEALTH.command}, context.getLeader(), LISTEN_PORT);
+                client.unicast(new byte[]{Command.HEALTH.command}, context.getLeader().leaderIp(), context.getLeader().leaderPort());
                 context.healthCounter.incrementAndGet();
             } catch (IOException e) {
                 e.printStackTrace();

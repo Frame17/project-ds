@@ -1,6 +1,6 @@
 package infrastructure.handler.message;
 
-import infrastructure.SystemContext;
+import infrastructure.system.SystemContext;
 
 import java.net.DatagramPacket;
 
