@@ -1,8 +1,7 @@
 package infrastructure.handler.message;
 
 import infrastructure.Command;
-import infrastructure.Node;
-import infrastructure.SystemContext;
+import infrastructure.system.SystemContext;
 
 import java.net.DatagramPacket;
 import java.util.Arrays;

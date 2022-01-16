@@ -1,8 +1,8 @@
 package infrastructure.handler.message;
 
 import infrastructure.Command;
-import infrastructure.SystemContext;
 import infrastructure.client.RemoteClient;
+import infrastructure.system.SystemContext;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -18,14 +18,23 @@ public class StartMessageHandler implements MessageHandler {
     @Override
     public void handle(SystemContext context, DatagramPacket packet) {
         try {
-            byte[] address = context.getLeader().getAddress();
-            ByteBuffer buffer = ByteBuffer.allocate(1 + address.length);
-            buffer.put(Command.START_ACK.command);
-            buffer.put(address);
+            ByteBuffer message = ByteBuffer.wrap(packet.getData());
+            short port = message.getShort(1);
 
-            client.unicast(buffer.array(), packet.getAddress(), packet.getPort());
+            client.unicast(buildMessage(context), packet.getAddress(), port);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private byte[] buildMessage(SystemContext context) {
+        byte[] address = context.getLeader().leaderIp().getAddress();
+        ByteBuffer buffer = ByteBuffer.allocate(Byte.BYTES + Short.BYTES + address.length);
+
+        buffer.put(Command.START_ACK.command);
+        buffer.putShort(context.getLeader().leaderPort());
+        buffer.put(address);
+
+        return buffer.array();
     }
 }

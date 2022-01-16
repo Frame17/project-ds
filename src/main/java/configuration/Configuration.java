@@ -1,6 +1,7 @@
 package configuration;
 
 import infrastructure.Command;
+import infrastructure.system.SystemContext;
 import infrastructure.client.RemoteClient;
 import infrastructure.client.UdpClient;
 import infrastructure.handler.message.*;
@@ -8,10 +9,13 @@ import infrastructure.handler.request.RequestHandler;
 import infrastructure.handler.request.UdpRequestHandler;
 
 import java.net.DatagramPacket;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Configuration {
+    public static final short DEFAULT_LISTEN_PORT = 4711;
 
     public RequestHandler<DatagramPacket> getRequestHandler() {
         return new UdpRequestHandler(new CompositeMessageHandler(messageHandlers(getRemoteClient())));
@@ -27,5 +31,17 @@ public class Configuration {
 
     public RemoteClient<DatagramPacket> getRemoteClient() {
         return new UdpClient();
+    }
+
+    public short getListenPort() {
+        return DEFAULT_LISTEN_PORT;
+    }
+
+    public SystemContext getContext() {
+        try {
+            return new SystemContext(InetAddress.getLocalHost().getHostAddress() + ':' + getListenPort());
+        } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
