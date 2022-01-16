@@ -26,6 +26,8 @@ public class Node {
         ByteBuffer buffer = ByteBuffer.allocate(Byte.BYTES + Integer.BYTES);
         buffer.put(Command.START.command);
         buffer.putInt(context.listenPort);
+        System.out.println(context.id + " broadcast ");
+
         client.broadcast(buffer.array());
     }
 

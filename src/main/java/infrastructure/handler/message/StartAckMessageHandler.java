@@ -23,6 +23,8 @@ public class StartAckMessageHandler implements MessageHandler {
 
     @Override
     public void handle(SystemContext context, DatagramPacket packet) {
+        System.out.println(context.id + " start ack message handler ");
+
         context.setLeader(converter.convert(packet.getData()));
         startHealthCheck(context);
     }

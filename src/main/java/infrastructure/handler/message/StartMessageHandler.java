@@ -9,8 +9,6 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.nio.ByteBuffer;
 
-import static infrastructure.system.IdService.nodeId;
-
 public class StartMessageHandler implements MessageHandler {
     private final RemoteClient<DatagramPacket> client;
     private final PayloadConverter<Integer> converter;
@@ -24,10 +22,9 @@ public class StartMessageHandler implements MessageHandler {
     public void handle(SystemContext context, DatagramPacket packet) {
         try {
             int port = converter.convert(packet.getData());
+            System.out.println(context.id + " start message handler " + packet.getAddress() + ':' + port);
 
-            if (!context.id.equals(nodeId(packet.getAddress(), port))) {    // don't reply to own request
-                client.unicast(buildMessage(context), packet.getAddress(), port);
-            }
+            client.unicast(buildMessage(context), packet.getAddress(), port);
         } catch (IOException e) {
             e.printStackTrace();
         }
