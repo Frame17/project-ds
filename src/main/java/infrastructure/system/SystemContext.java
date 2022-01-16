@@ -1,14 +1,18 @@
 package infrastructure.system;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class SystemContext {
     public final String id;
+    public final int listenPort;
     private Leader leader;
     public final AtomicInteger healthCounter = new AtomicInteger();
 
-    public SystemContext(String id) {
+    public SystemContext(String id, int listenPort) {
         this.id = id;
+        this.listenPort = listenPort;
     }
 
     public Leader getLeader() {
@@ -17,5 +21,14 @@ public class SystemContext {
 
     public void setLeader(Leader leader) {
         this.leader = leader;
+    }
+
+    public boolean isLeader() {
+        try {
+            return leader.equals(new Leader(InetAddress.getLocalHost(), listenPort));
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 }
