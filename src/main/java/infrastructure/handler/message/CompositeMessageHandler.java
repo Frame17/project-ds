@@ -22,8 +22,6 @@ public class CompositeMessageHandler implements MessageHandler {
                 .collect(Collectors.toMap(it -> it.command, Function.identity()))
                 .get(packet.getData()[0]);
 
-        messageHandlers
-                .get(command)
-                .handle(context, packet);
+        messageHandlers.get(command).handle(context, packet);
     }
 }
