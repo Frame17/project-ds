@@ -1,10 +1,15 @@
 package infrastructure.system;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class SystemContext {
+    private final static Logger LOG = LogManager.getLogger(SystemContext.class);
+
     public final String id;
     public final int listenPort;
     private Leader leader;
@@ -27,7 +32,7 @@ public class SystemContext {
         try {
             return leader.equals(new Leader(InetAddress.getLocalHost(), listenPort));
         } catch (UnknownHostException e) {
-            e.printStackTrace();
+            LOG.error(e);
             throw new RuntimeException(e);
         }
     }

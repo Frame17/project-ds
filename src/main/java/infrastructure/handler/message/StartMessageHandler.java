@@ -4,6 +4,8 @@ import infrastructure.Command;
 import infrastructure.client.RemoteClient;
 import infrastructure.converter.PayloadConverter;
 import infrastructure.system.SystemContext;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -12,6 +14,10 @@ import java.nio.ByteBuffer;
 import static infrastructure.system.IdService.nodeId;
 
 public class StartMessageHandler implements MessageHandler {
+
+    private final static Logger LOG = LogManager.getLogger(StartMessageHandler.class);
+
+
     private final RemoteClient<DatagramPacket> client;
     private final PayloadConverter<Integer> converter;
 
@@ -29,7 +35,7 @@ public class StartMessageHandler implements MessageHandler {
                 client.unicast(buildMessage(context), packet.getAddress(), port);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.error(e);
         }
     }
 
