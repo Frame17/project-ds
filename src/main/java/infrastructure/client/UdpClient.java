@@ -35,7 +35,7 @@ public class UdpClient implements RemoteClient<DatagramPacket> {
 
         DatagramPacket packet = new DatagramPacket(message, message.length, InetAddress.getByName("255.255.255.255"), DEFAULT_LISTEN_PORT);
 
-        LOG.info("Send broadcast to {}:{}", packet.getAddress().getHostAddress(), packet.getPort());
+        LOG.info("Send broadcast to {}", packet.getPort());
 
         socket.send(packet);
         socket.close();
