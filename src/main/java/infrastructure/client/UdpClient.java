@@ -2,6 +2,8 @@ package infrastructure.client;
 
 import infrastructure.system.SystemContext;
 import infrastructure.handler.request.RequestHandler;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -14,6 +16,8 @@ import static configuration.Configuration.DEFAULT_LISTEN_PORT;
 
 public class UdpClient implements RemoteClient<DatagramPacket> {
     private final ExecutorService listenExecutor = Executors.newSingleThreadExecutor();
+
+    private final static Logger LOG = LogManager.getLogger(UdpClient.class);
 
     @Override
     public void unicast(byte[] message, InetAddress ip, int port) throws IOException {
@@ -44,7 +48,7 @@ public class UdpClient implements RemoteClient<DatagramPacket> {
                     requestHandler.handle(context, packet);
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                LOG.error(e);
             }
         });
     }

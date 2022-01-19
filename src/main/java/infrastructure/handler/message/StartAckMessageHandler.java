@@ -3,8 +3,12 @@ package infrastructure.handler.message;
 import infrastructure.Command;
 import infrastructure.client.RemoteClient;
 import infrastructure.converter.PayloadConverter;
+import infrastructure.converter.StartAckPayloadConverter;
 import infrastructure.system.Leader;
 import infrastructure.system.SystemContext;
+import infrastructure.system.message.StartAckMessage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -13,28 +17,41 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class StartAckMessageHandler implements MessageHandler {
-    private final RemoteClient<DatagramPacket> client;
-    private final PayloadConverter<Leader> converter;
 
-    public StartAckMessageHandler(RemoteClient<DatagramPacket> client, PayloadConverter<Leader> converter) {
+    private final static Logger LOG = LogManager.getLogger(StartAckMessageHandler.class);
+
+    private final RemoteClient<DatagramPacket> client;
+    private final PayloadConverter<StartAckMessage> converter;
+
+    public StartAckMessageHandler(RemoteClient<DatagramPacket> client, StartAckPayloadConverter converter) {
         this.client = client;
         this.converter = converter;
     }
 
     @Override
     public void handle(SystemContext context, DatagramPacket packet) {
-        context.setLeader(converter.convert(packet.getData()));
+        StartAckMessage message = converter.decode(packet.getData());
+        Leader leader = message.leader();
+
+        LOG.info("Set new leader {}:{}", leader.leaderIp(), leader.leaderPort());
+
+        context.setLeader(leader);
+
+        //TODO: since each node responds to this message, this should only be called once. Or only the leader responds to the START-Command message
         startHealthCheck(context);
     }
 
     private void startHealthCheck(SystemContext context) {
+        LOG.info("Start health executor");
         ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(1);
         threadPool.schedule(() -> {
             try {
+                LOG.info("Send health message to {}:{}", context.getLeader().leaderIp(), context.getLeader().leaderPort());
+
                 client.unicast(new byte[]{Command.HEALTH.command}, context.getLeader().leaderIp(), context.getLeader().leaderPort());
                 context.healthCounter.incrementAndGet();
             } catch (IOException e) {
-                e.printStackTrace();
+                LOG.error(e);
                 throw new RuntimeException(e);
             }
         }, 3, TimeUnit.SECONDS);
