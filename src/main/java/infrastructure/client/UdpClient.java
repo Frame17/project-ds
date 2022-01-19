@@ -15,9 +15,10 @@ import java.util.concurrent.Executors;
 import static configuration.Configuration.DEFAULT_LISTEN_PORT;
 
 public class UdpClient implements RemoteClient<DatagramPacket> {
-    private final ExecutorService listenExecutor = Executors.newSingleThreadExecutor();
 
     private final static Logger LOG = LogManager.getLogger(UdpClient.class);
+
+    private final ExecutorService listenExecutor = Executors.newSingleThreadExecutor();
 
     @Override
     public void unicast(byte[] message, InetAddress ip, int port) throws IOException {
@@ -31,7 +32,11 @@ public class UdpClient implements RemoteClient<DatagramPacket> {
     public void broadcast(byte[] message) throws IOException {
         DatagramSocket socket = new DatagramSocket();
         socket.setBroadcast(true);
+
         DatagramPacket packet = new DatagramPacket(message, message.length, InetAddress.getByName("255.255.255.255"), DEFAULT_LISTEN_PORT);
+
+        LOG.info("Send broadcast to {}", packet.getPort());
+
         socket.send(packet);
         socket.close();
     }
@@ -41,6 +46,7 @@ public class UdpClient implements RemoteClient<DatagramPacket> {
         listenExecutor.execute(() -> {
             try {
                 DatagramSocket socket = new DatagramSocket(port);
+                LOG.info("Listening for packets on {}", port);
                 while (true) {
                     int size = Byte.BYTES + Integer.BYTES + 4;
                     DatagramPacket packet = new DatagramPacket(new byte[size], size);
