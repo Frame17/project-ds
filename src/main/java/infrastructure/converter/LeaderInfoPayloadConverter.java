@@ -14,11 +14,14 @@ public class LeaderInfoPayloadConverter implements PayloadConverter<LeaderInfoMe
         try {
             ByteBuffer buffer = ByteBuffer.wrap(payload, 1, payload.length - 1);
 
-            byte[] leaderIp = new byte[4 * Byte.BYTES];
-            buffer.get(leaderIp);
-            InetAddress leader = InetAddress.getByAddress(leaderIp);
+            byte[] neighbourIp = new byte[4 * Byte.BYTES];
 
-            return new LeaderInfoMessage(leader);
+            buffer.get(neighbourIp);
+            int port = buffer.getInt();
+
+            InetAddress neighbour = InetAddress.getByAddress(neighbourIp);
+
+            return new LeaderInfoMessage(neighbour, port);
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);
         }
@@ -36,6 +39,7 @@ public class LeaderInfoPayloadConverter implements PayloadConverter<LeaderInfoMe
 
         buffer.put(c.command);
         buffer.put(address);
+        buffer.putInt(record.port());
 
         return buffer.array();
     }

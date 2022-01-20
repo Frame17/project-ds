@@ -48,7 +48,10 @@ public class ElectionMessageHandler implements MessageHandler{
             //
             if (electionMassage.isLeader() && local_int != mid_int) {
 
-                client.unicast(converter.encode(Command.ELECTION, electionMassage), context.getNeighbour().getInetAddress(), DEFAULT_LISTEN_PORT);
+                client.unicast(
+                        converter.encode(Command.ELECTION, electionMassage),
+                        context.getNeighbour().getInetAddress(),
+                        context.getNeighbour().getPort());
                 participant = false;
 
                 // Not elected node
@@ -65,19 +68,28 @@ public class ElectionMessageHandler implements MessageHandler{
                 if (mid_int > local_int) {
                     participant = true;
 
-                    client.unicast(converter.encode(Command.ELECTION, electionMassage), context.getNeighbour().getInetAddress(), DEFAULT_LISTEN_PORT);
+                    client.unicast(
+                            converter.encode(Command.ELECTION, electionMassage),
+                            context.getNeighbour().getInetAddress(),
+                            context.getNeighbour().getPort());
                 } else if (mid_int < local_int && !participant) {
                     participant = true;
                     ElectionMassage newElectionMassage = new ElectionMassage(context.getLocalAddress(), false);
 
-                    client.unicast(converter.encode(Command.ELECTION, newElectionMassage), context.getNeighbour().getInetAddress(), DEFAULT_LISTEN_PORT);
+                    client.unicast(
+                            converter.encode(Command.ELECTION, newElectionMassage),
+                            context.getNeighbour().getInetAddress(),
+                            context.getNeighbour().getPort());
                 } else if (mid_int < local_int && participant) {
                     LOG.error("Election error state (╯°□°)╯︵ ┻━┻");
                 } else if (local_int == mid_int) {
                     participant = false;
 
                     ElectionMassage newElectionMassage = new ElectionMassage(context.getLocalAddress(), true);
-                    client.unicast(converter.encode(Command.ELECTION, newElectionMassage), context.getNeighbour().getInetAddress(), DEFAULT_LISTEN_PORT);
+                    client.unicast(
+                            converter.encode(Command.ELECTION, newElectionMassage),
+                            context.getNeighbour().getInetAddress(),
+                            context.getNeighbour().getPort());
                 }
             }
             /*

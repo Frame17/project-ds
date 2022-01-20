@@ -58,13 +58,13 @@ public class StartMessageHandler implements MessageHandler {
                     context.addNode(new RemoteNode(packet.getAddress(), port, null, context));
 
                     if (context.getNodes().size() == 1) {
-                        client.unicast(buildLeaderInfoMessage(context, context.getNodes().get(0).getInetAddress()), context.getNodes().get(0).getInetAddress(), port);
+                        client.unicast(buildLeaderInfoMessage(context, context.getNodes().get(0)), context.getNodes().get(0).getInetAddress(), port);
                     }else{
                         for (int i = context.getNodes().size() -1; i >= 0 ; i--) {
                             if (i == context.getNodes().size() -1) {
-                                client.unicast(buildLeaderInfoMessage(context, context.getNodes().get(0).getInetAddress()), context.getNodes().get(i).getInetAddress(), port);
+                                client.unicast(buildLeaderInfoMessage(context, context.getNodes().get(0)), context.getNodes().get(i).getInetAddress(), port);
                             }else{
-                                client.unicast(buildLeaderInfoMessage(context, context.getNodes().get(i+1).getInetAddress()), context.getNodes().get(i).getInetAddress(), port);
+                                client.unicast(buildLeaderInfoMessage(context, context.getNodes().get(i+1)), context.getNodes().get(i).getInetAddress(), port);
                             }
                         }
                     }
@@ -76,9 +76,9 @@ public class StartMessageHandler implements MessageHandler {
         }
     }
 
-    private byte[] buildLeaderInfoMessage(SystemContext context, InetAddress neighbour){
+    private byte[] buildLeaderInfoMessage(SystemContext context, RemoteNode neighbour){
 
-        LeaderInfoMessage infoMessage = new LeaderInfoMessage(neighbour);
+        LeaderInfoMessage infoMessage = new LeaderInfoMessage(neighbour.getInetAddress(), neighbour.getPort());
 
         return new LeaderInfoPayloadConverter().encode(Command.LEADER_INFO, infoMessage);
     }
