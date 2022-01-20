@@ -4,7 +4,6 @@ import configuration.Configuration;
 import infrastructure.client.RemoteClient;
 import infrastructure.converter.ElectionPayloadConverter;
 import infrastructure.converter.StartPayloadConverter;
-import infrastructure.handler.message.ElectionMessageHandler;
 import infrastructure.handler.request.RequestHandler;
 import infrastructure.system.message.ElectionMassage;
 import infrastructure.system.Leader;
@@ -16,7 +15,6 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
-import java.nio.ByteBuffer;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -72,7 +70,7 @@ public class Node {
                     // Send Message to random node
                     client.unicast(
                             new ElectionPayloadConverter().encode(Command.ELECTION, message),
-                            context.nodes.get((int)(Math.random()*context.nodes.size())),
+                            context.getNodes().get((int)(Math.random()* context.getNodes().size())).getInetAddress(),
                             DEFAULT_LISTEN_PORT
                     );
                 } catch (IOException e) {

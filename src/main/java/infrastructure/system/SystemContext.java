@@ -5,7 +5,10 @@ import org.apache.logging.log4j.Logger;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.rmi.Remote;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -53,29 +56,34 @@ public class SystemContext {
 
 
     // election stuff
-    //TODO: REFACTOR :(
-    public InetAddress neighbour;
-    public Direction direction;
-    public List<InetAddress> nodes = new ArrayList<>();
+    //TODO: Different implementations for Data/Master-Node
+    private RemoteNode neighbour;
+    private List<RemoteNode> nodes = new ArrayList<>();
 
 
     public void actAsLeader(){
         LOG.info("This node is now acting as leader {}", getLeader());
-
-
-
         //TODO: Leader has to know each node, and form a ring...
     }
+    public void addNode(RemoteNode node){
+        nodes.add(node);
+        formRing();
+    }
 
+    private void formRing(){
+        nodes.sort(Comparator.comparing(remoteNode -> IPUtils.getIntRepresentation(remoteNode.getInetAddress())));
+        LOG.info("New Ring {}", Arrays.toString(this.getNodes().toArray()));
+    }
 
+    public List<RemoteNode> getNodes() {
+        return nodes;
+    }
 
-    public enum Direction {
-        LEFT(0), RIGHT(1);
+    public RemoteNode getNeighbour() {
+        return neighbour;
+    }
 
-        public final byte direction;
-
-        Direction(int direction) {
-            this.direction = ((byte) direction);
-        }
+    public void setNeighbour(RemoteNode neighbour) {
+        this.neighbour = neighbour;
     }
 }

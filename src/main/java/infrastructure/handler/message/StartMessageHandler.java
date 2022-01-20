@@ -1,12 +1,12 @@
 package infrastructure.handler.message;
 
-import com.google.common.net.InetAddresses;
 import infrastructure.Command;
 import infrastructure.client.RemoteClient;
 import infrastructure.converter.LeaderInfoPayloadConverter;
 import infrastructure.converter.PayloadConverter;
 import infrastructure.converter.StartAckPayloadConverter;
 import infrastructure.system.IPUtils;
+import infrastructure.system.RemoteNode;
 import infrastructure.system.SystemContext;
 import infrastructure.system.message.LeaderInfoMessage;
 import infrastructure.system.message.StartAckMessage;
@@ -17,7 +17,6 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -55,21 +54,17 @@ public class StartMessageHandler implements MessageHandler {
                 if (context.isLeader()) {
                     LOG.info("Add new Data-Node");
 
-                    //TODO: Refactor...
-                    context.nodes.add(packet.getAddress());
+                    //TODO: Mode to "master-implementation"
+                    context.addNode(new RemoteNode(packet.getAddress(), port, null, context));
 
-                    context.nodes.sort(Comparator.comparing(IPUtils::getIntRepresentation));
-
-                    LOG.info("New Ring {}", Arrays.toString(context.nodes.toArray()));
-
-                    if (context.nodes.size() == 1) {
-                        client.unicast(buildLeaderInfoMessage(context, context.nodes.get(0)), context.nodes.get(0), port);
+                    if (context.getNodes().size() == 1) {
+                        client.unicast(buildLeaderInfoMessage(context, context.getNodes().get(0).getInetAddress()), context.getNodes().get(0).getInetAddress(), port);
                     }else{
-                        for (int i = context.nodes.size() -1 ; i >= 0 ; i--) {
-                            if (i == context.nodes.size() -1) {
-                                client.unicast(buildLeaderInfoMessage(context, context.nodes.get(0)), context.nodes.get(i), port);
+                        for (int i = context.getNodes().size() -1; i >= 0 ; i--) {
+                            if (i == context.getNodes().size() -1) {
+                                client.unicast(buildLeaderInfoMessage(context, context.getNodes().get(0).getInetAddress()), context.getNodes().get(i).getInetAddress(), port);
                             }else{
-                                client.unicast(buildLeaderInfoMessage(context, context.nodes.get(i+1)), context.nodes.get(i), port);
+                                client.unicast(buildLeaderInfoMessage(context, context.getNodes().get(i+1).getInetAddress()), context.getNodes().get(i).getInetAddress(), port);
                             }
                         }
                     }

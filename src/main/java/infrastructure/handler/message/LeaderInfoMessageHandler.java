@@ -1,7 +1,9 @@
 package infrastructure.handler.message;
 
+import configuration.Configuration;
 import infrastructure.client.RemoteClient;
 import infrastructure.converter.PayloadConverter;
+import infrastructure.system.RemoteNode;
 import infrastructure.system.message.LeaderInfoMessage;
 import infrastructure.system.SystemContext;
 import org.apache.logging.log4j.LogManager;
@@ -25,7 +27,9 @@ public class LeaderInfoMessageHandler implements MessageHandler{
     public void handle(SystemContext context, DatagramPacket packet) {
         LeaderInfoMessage infoMessage = converter.decode(packet.getData());
 
-        context.neighbour = infoMessage.neighbour();
-        LOG.info("Set new neighbour {}", context.neighbour.getHostAddress());
+        RemoteNode remoteNode = new RemoteNode(infoMessage.neighbour(), Configuration.DEFAULT_LISTEN_PORT, null, context);
+        context.setNeighbour(remoteNode);
+
+        LOG.info("Set new neighbour {}", context.getNeighbour().getInetAddress().getHostAddress());
     }
 }
