@@ -35,7 +35,7 @@ public class LeaderInfoPayloadConverter implements PayloadConverter<LeaderInfoMe
     @Override
     public byte[] encode(Command c, LeaderInfoMessage record) {
         byte[] address = record.neighbour().getAddress();
-        ByteBuffer buffer = ByteBuffer.allocate(Byte.BYTES + address.length);
+        ByteBuffer buffer = ByteBuffer.allocate(Byte.BYTES + address.length + Integer.BYTES);
 
         buffer.put(c.command);
         buffer.put(address);

@@ -30,6 +30,6 @@ public class LeaderInfoMessageHandler implements MessageHandler{
         RemoteNode remoteNode = new RemoteNode(infoMessage.neighbour(), infoMessage.port(), null, context);
         context.setNeighbour(remoteNode);
 
-        LOG.info("Set new neighbour {}", context.getNeighbour().getInetAddress().getHostAddress());
+        LOG.info("Set new neighbour {}", context.getNeighbour());
     }
 }
