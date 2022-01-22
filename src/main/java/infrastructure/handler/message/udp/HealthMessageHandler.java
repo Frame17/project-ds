@@ -6,12 +6,14 @@ import infrastructure.system.Leader;
 import infrastructure.system.SystemContext;
 
 import java.net.DatagramPacket;
+import java.util.HashMap;
 
 public class HealthMessageHandler implements UdpMessageHandler {
     private final RemoteClient<DatagramPacket> client;
-    private final PayloadConverter<Leader> converter;
+    private final PayloadConverter<Integer> converter;
+    private HashMap<Integer, Integer> HealthStatus = new HashMap<Integer, Integer>() ;
 
-    public HealthMessageHandler(RemoteClient<DatagramPacket> client, PayloadConverter<Leader> converter) {
+    public HealthMessageHandler(RemoteClient<DatagramPacket> client, PayloadConverter<Integer> converter) {
         this.client = client;
         this.converter = converter;
     }
@@ -19,7 +21,8 @@ public class HealthMessageHandler implements UdpMessageHandler {
     @Override
     public void handle(SystemContext context, DatagramPacket packet) {
         if (context.isLeader()) {
-            // todo - implement
+            //
+
         }
     }
 }

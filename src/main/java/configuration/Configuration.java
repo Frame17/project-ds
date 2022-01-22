@@ -39,7 +39,6 @@ public class Configuration {
         messageHandlers.put(Command.START_ACK, new StartAckMessageHandler(client, startAckPayloadConverter));
         messageHandlers.put(Command.HEALTH, new HealthMessageHandler(client, null));
         messageHandlers.put(Command.HEALTH_ACK, new HealthAckMessageHandler());
-
         messageHandlers.put(Command.ELECTION, new ElectionMessageHandler(client, new ElectionPayloadConverter()));
         messageHandlers.put(Command.NEIGHBOUR_INFO, new NeighbourInfoMessageHandler(client, new NeighbourInfoPayloadConverter()));
 
