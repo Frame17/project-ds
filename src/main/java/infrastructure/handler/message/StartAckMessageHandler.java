@@ -23,7 +23,7 @@ public class StartAckMessageHandler implements MessageHandler {
     private final RemoteClient<DatagramPacket> client;
     private final PayloadConverter<StartAckMessage> converter;
 
-    public StartAckMessageHandler(RemoteClient<DatagramPacket> client, StartAckPayloadConverter converter) {
+    public StartAckMessageHandler(RemoteClient<DatagramPacket> client, PayloadConverter<StartAckMessage> converter) {
         this.client = client;
         this.converter = converter;
     }
