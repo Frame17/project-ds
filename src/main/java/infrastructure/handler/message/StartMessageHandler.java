@@ -55,7 +55,7 @@ public class StartMessageHandler implements MessageHandler {
                     LOG.info("Add new Data-Node");
 
                     //TODO: Mode to "master-implementation"
-                    context.addNode(new RemoteNode(packet.getAddress(), port, null, context));
+                    context.addNode(new RemoteNode(packet.getAddress(), port, null));
 
                     if (context.getNodes().size() == 1) {
                         client.unicast(buildLeaderInfoMessage(context, context.getNodes().get(0)), context.getNodes().get(0).getInetAddress(), port);

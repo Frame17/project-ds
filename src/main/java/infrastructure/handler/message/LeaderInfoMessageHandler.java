@@ -27,7 +27,7 @@ public class LeaderInfoMessageHandler implements MessageHandler{
     public void handle(SystemContext context, DatagramPacket packet) {
         LeaderInfoMessage infoMessage = converter.decode(packet.getData());
 
-        RemoteNode remoteNode = new RemoteNode(infoMessage.neighbour(), infoMessage.port(), null, context);
+        RemoteNode remoteNode = new RemoteNode(infoMessage.neighbour(), infoMessage.port(), null);
         context.setNeighbour(remoteNode);
 
         LOG.info("Set new neighbour {}", context.getNeighbour());

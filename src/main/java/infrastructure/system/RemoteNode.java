@@ -9,13 +9,11 @@ public class RemoteNode {
     private final InetAddress inetAddress;
     private final int port;
     private Date lastHealthCheck;
-    private final SystemContext context;
 
-    public RemoteNode(InetAddress inetAddress, int port, Date lastHealthCheck, SystemContext context) {
+    public RemoteNode(InetAddress inetAddress, int port, Date lastHealthCheck) {
         this.inetAddress = inetAddress;
         this.port = port;
         this.lastHealthCheck = lastHealthCheck;
-        this.context = context;
     }
 
     public Socket openDirectChannel(){
