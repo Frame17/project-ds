@@ -6,18 +6,13 @@ import infrastructure.system.message.StartMessage;
 import java.nio.ByteBuffer;
 
 public class StartPayloadConverter implements PayloadConverter<StartMessage> {
-    @Override
-    public StartMessage convert(byte[] payload) {
 
+    @Override
+    public StartMessage decode(byte[] payload) {
         ByteBuffer message = ByteBuffer.wrap(payload);
         StartMessage startMessage = new StartMessage(message.getInt(1));
 
         return startMessage;
-    }
-
-    @Override
-    public StartMessage decode(byte[] payload) {
-        return this.convert(payload);
     }
 
     @Override

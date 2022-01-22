@@ -10,7 +10,7 @@ import java.nio.ByteBuffer;
 public class LeaderInfoPayloadConverter implements PayloadConverter<LeaderInfoMessage> {
 
     @Override
-    public LeaderInfoMessage convert(byte[] payload) {
+    public LeaderInfoMessage decode(byte[] payload) {
         try {
             ByteBuffer buffer = ByteBuffer.wrap(payload, 1, payload.length - 1);
 
@@ -25,11 +25,6 @@ public class LeaderInfoPayloadConverter implements PayloadConverter<LeaderInfoMe
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    @Override
-    public LeaderInfoMessage decode(byte[] payload) {
-        return this.convert(payload);
     }
 
     @Override

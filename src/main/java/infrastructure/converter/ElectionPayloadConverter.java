@@ -10,7 +10,7 @@ import java.nio.ByteBuffer;
 public class ElectionPayloadConverter implements PayloadConverter<ElectionMassage> {
 
     @Override
-    public ElectionMassage convert(byte[] payload) {
+    public ElectionMassage decode(byte[] payload) {
         try {
             ByteBuffer buffer = ByteBuffer.wrap(payload, 1, payload.length - 1);
 
@@ -26,11 +26,6 @@ public class ElectionPayloadConverter implements PayloadConverter<ElectionMassag
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    @Override
-    public ElectionMassage decode(byte[] payload) {
-        return this.convert(payload);
     }
 
     @Override

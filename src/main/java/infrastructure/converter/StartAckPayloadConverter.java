@@ -11,7 +11,7 @@ import java.nio.ByteBuffer;
 public class StartAckPayloadConverter implements PayloadConverter<StartAckMessage> {
 
     @Override
-    public StartAckMessage convert(byte[] payload) {
+    public StartAckMessage decode(byte[] payload) {
         try {
 
             ByteBuffer buffer = ByteBuffer.wrap(payload, 1, payload.length - 1);
@@ -24,11 +24,6 @@ public class StartAckPayloadConverter implements PayloadConverter<StartAckMessag
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    @Override
-    public StartAckMessage decode(byte[] payload) {
-        return this.convert(payload);
     }
 
     @Override
