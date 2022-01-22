@@ -29,11 +29,10 @@ public class ElectionMessageHandler implements MessageHandler{
     }
 
     private boolean participant;
-    private InetAddress leader_mid;
 
     @Override
     public void handle(SystemContext context, DatagramPacket packet) {
-        ElectionMassage electionMassage = converter.convert(packet.getData());
+        ElectionMassage electionMassage = converter.decode(packet.getData());
 
         // LOG.info("Received election message from {} content {}", packet.getAddress().getHostAddress(), electionMassage);
 
@@ -55,7 +54,6 @@ public class ElectionMessageHandler implements MessageHandler{
                 participant = false;
 
                 // Not elected node
-                leader_mid = electionMassage.mid();
                 context.setLeader(new Leader(electionMassage.mid(), DEFAULT_LISTEN_PORT));
 
             }else if (electionMassage.isLeader()){
@@ -81,7 +79,7 @@ public class ElectionMessageHandler implements MessageHandler{
                             context.getNeighbour().getInetAddress(),
                             context.getNeighbour().getPort());
                 } else if (mid_int < local_int && participant) {
-                    LOG.error("Election error state (╯°□°)╯︵ ┻━┻");
+                   // This can happen when two nodes have started the election, that's fine.
                 } else if (local_int == mid_int) {
                     participant = false;
 
