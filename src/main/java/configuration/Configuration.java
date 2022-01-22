@@ -3,6 +3,7 @@ package configuration;
 import infrastructure.Command;
 import infrastructure.client.RemoteClient;
 import infrastructure.client.UdpClient;
+import infrastructure.converter.HealthPayloadConverter;
 import infrastructure.converter.StartAckPayloadConverter;
 import infrastructure.converter.StartPayloadConverter;
 import infrastructure.handler.message.*;
@@ -29,7 +30,7 @@ public class Configuration {
         HashMap<Command, MessageHandler> messageHandlers = new HashMap<>();
         messageHandlers.put(Command.START, new StartMessageHandler(client, new StartPayloadConverter()));
         messageHandlers.put(Command.START_ACK, new StartAckMessageHandler(client, new StartAckPayloadConverter()));
-        messageHandlers.put(Command.HEALTH, new HealthMessageHandler(client, null));
+        messageHandlers.put(Command.HEALTH, new HealthMessageHandler(client, new HealthPayloadConverter()));
         messageHandlers.put(Command.HEALTH_ACK, new HealthAckMessageHandler());
         return messageHandlers;
     }
