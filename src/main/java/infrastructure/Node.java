@@ -12,28 +12,32 @@ import java.net.DatagramPacket;
 import java.nio.ByteBuffer;
 
 public class Node {
-
     private final static Logger LOG = LogManager.getLogger(Node.class);
 
     public final SystemContext context;
-    private final RemoteClient<DatagramPacket> client;
-    private final RequestHandler<DatagramPacket> requestHandler;
+    private final RemoteClient<DatagramPacket> defaultClient;
+    private final RequestHandler<DatagramPacket> defaultClientRequestHandler;
+    private final RemoteClient<byte[]> reliableClient;
+    private final RequestHandler<byte[]> reliableClientRequestHandler;
 
     public Node(Configuration configuration) {
         this.context = configuration.getContext();
-        this.client = configuration.getRemoteClient();
-        this.requestHandler = configuration.getRequestHandler();
+        this.defaultClient = configuration.getDefaultClient();
+        this.defaultClientRequestHandler = configuration.getDefaultClientRequestHandler();
+        this.reliableClient = configuration.getReliableClient();
+        this.reliableClientRequestHandler = configuration.getReliableClientRequestHandler();
     }
 
     public void joinSystem() throws IOException {
-        LOG.info("Join system");
+        LOG.info(context.id + " joins the system");
 
-        client.listen(context, requestHandler, context.listenPort);
+        defaultClient.listen(context, defaultClientRequestHandler, context.listenPort);
+        reliableClient.listen(context, reliableClientRequestHandler, context.listenPort);
 
         ByteBuffer buffer = ByteBuffer.allocate(Byte.BYTES + Integer.BYTES);
         buffer.put(Command.START.command);
         buffer.putInt(context.listenPort);
-        client.broadcast(buffer.array());
+        defaultClient.broadcast(buffer.array());
     }
 
     public void startMasterElection() {
