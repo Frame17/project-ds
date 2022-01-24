@@ -2,11 +2,15 @@ package configuration;
 
 import infrastructure.Command;
 import infrastructure.client.RemoteClient;
+import infrastructure.client.TcpClient;
 import infrastructure.client.UdpClient;
 import infrastructure.converter.StartAckPayloadConverter;
 import infrastructure.converter.StartPayloadConverter;
-import infrastructure.handler.message.*;
+import infrastructure.handler.message.tcp.FileUploadMessageHandler;
+import infrastructure.handler.message.tcp.TcpMessageHandler;
+import infrastructure.handler.message.udp.*;
 import infrastructure.handler.request.RequestHandler;
+import infrastructure.handler.request.TcpRequestHandler;
 import infrastructure.handler.request.UdpRequestHandler;
 import infrastructure.system.SystemContext;
 
@@ -21,12 +25,12 @@ import static infrastructure.system.IdService.nodeId;
 public class Configuration {
     public static final int DEFAULT_LISTEN_PORT = 4711;
 
-    public RequestHandler<DatagramPacket> getRequestHandler() {
-        return new UdpRequestHandler(new CompositeMessageHandler(messageHandlers(getRemoteClient())));
+    public RequestHandler<DatagramPacket> getDefaultClientRequestHandler() {
+        return new UdpRequestHandler(udpMessageHandlers(getDefaultClient()));
     }
 
-    private Map<Command, MessageHandler> messageHandlers(RemoteClient<DatagramPacket> client) {
-        HashMap<Command, MessageHandler> messageHandlers = new HashMap<>();
+    private Map<Command, UdpMessageHandler> udpMessageHandlers(RemoteClient<DatagramPacket> client) {
+        HashMap<Command, UdpMessageHandler> messageHandlers = new HashMap<>();
         messageHandlers.put(Command.START, new StartMessageHandler(client, new StartPayloadConverter()));
         messageHandlers.put(Command.START_ACK, new StartAckMessageHandler(client, new StartAckPayloadConverter()));
         messageHandlers.put(Command.HEALTH, new HealthMessageHandler(client, null));
@@ -34,8 +38,22 @@ public class Configuration {
         return messageHandlers;
     }
 
-    public RemoteClient<DatagramPacket> getRemoteClient() {
+    public RequestHandler<byte[]> getReliableClientRequestHandler() {
+        return new TcpRequestHandler(tcpMessageHandlers(getReliableClient()));
+    }
+
+    private Map<Command, TcpMessageHandler> tcpMessageHandlers(RemoteClient<byte[]> client) {
+        HashMap<Command, TcpMessageHandler> messageHandlers = new HashMap<>();
+        messageHandlers.put(Command.FILE_UPLOAD, new FileUploadMessageHandler(client));
+        return messageHandlers;
+    }
+
+    public RemoteClient<DatagramPacket> getDefaultClient() {
         return new UdpClient();
+    }
+
+    public RemoteClient<byte[]> getReliableClient() {
+        return new TcpClient();
     }
 
     public SystemContext getContext() {

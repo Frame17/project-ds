@@ -1,10 +1,10 @@
-package infrastructure.handler.message;
+package infrastructure.handler.message.udp;
 
 import infrastructure.system.SystemContext;
 
 import java.net.DatagramPacket;
 
-public class HealthAckMessageHandler implements MessageHandler {
+public class HealthAckMessageHandler implements UdpMessageHandler {
 
     @Override
     public void handle(SystemContext context, DatagramPacket packet) {

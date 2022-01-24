@@ -19,7 +19,7 @@ public class TestConfiguration extends Configuration {
     public TestConfiguration(int port, Leader leader) {
         this.port = port;
         this.leader = leader;
-        this.remoteClient =  Mockito.spy(UdpClient.class);
+        this.remoteClient = Mockito.spy(UdpClient.class);
     }
 
     @Override
@@ -34,7 +34,7 @@ public class TestConfiguration extends Configuration {
     }
 
     @Override
-    public RemoteClient<DatagramPacket> getRemoteClient() {
+    public RemoteClient<DatagramPacket> getDefaultClient() {
         return remoteClient;
     }
 }

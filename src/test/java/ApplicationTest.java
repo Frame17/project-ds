@@ -42,7 +42,6 @@ public class ApplicationTest {
     }
 
     @Test
-    // todo - fix random (tho not frequent) failures
     public void joinSystemTest() throws IOException {
         Node node = new Node(new TestConfiguration(randomPort(), null));
         node.joinSystem();
@@ -53,7 +52,7 @@ public class ApplicationTest {
     @Test
     public void healthcheckTest() throws IOException, InterruptedException {
         TestConfiguration configuration = new TestConfiguration(randomPort(), null);
-        RemoteClient<DatagramPacket> remoteClient = configuration.getRemoteClient();
+        RemoteClient<DatagramPacket> remoteClient = configuration.getDefaultClient();
 
         Node node = new Node(configuration);
         node.joinSystem();
