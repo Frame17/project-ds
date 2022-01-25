@@ -1,5 +1,6 @@
 package infrastructure.handler.message.udp;
 
+import com.google.common.net.InetAddresses;
 import infrastructure.Command;
 import infrastructure.client.RemoteClient;
 import infrastructure.converter.LeaderInfoPayloadConverter;
@@ -17,6 +18,7 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -56,6 +58,7 @@ public class StartMessageHandler implements UdpMessageHandler {
 
                     //TODO: Mode to "master-implementation"
                     context.addNode(new RemoteNode(packet.getAddress(), port));
+                    LOG.info("New Ring {}", Arrays.toString(context.getNodes().toArray()));
 
                     if (context.getNodes().size() == 1) {
                         client.unicast(buildLeaderInfoMessage(context, context.getNodes().get(0)), context.getNodes().get(0).ip(), port);

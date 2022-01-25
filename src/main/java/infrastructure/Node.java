@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 import static configuration.Configuration.DEFAULT_LISTEN_PORT;
 
 public class Node {
+
     private final static Logger LOG = LogManager.getLogger(Node.class);
 
     public final SystemContext context;
@@ -44,10 +45,6 @@ public class Node {
         defaultClient.listen(context, defaultClientRequestHandler, context.listenPort);
         reliableClient.listen(context, reliableClientRequestHandler, context.listenPort);
 
-        ByteBuffer buffer = ByteBuffer.allocate(Byte.BYTES + Integer.BYTES);
-        buffer.put(Command.START.command);
-        buffer.putInt(context.listenPort);
-        defaultClient.broadcast(buffer.array());
         // May introduce extra thread
         int loopCount = 0;
 
@@ -69,29 +66,23 @@ public class Node {
             context.setLeader(new Leader(context.getLocalAddress(), context.getListenPort()));
             context.actAsLeader();
 
-            //Hihi, start new election ;)
-            Executors.newSingleThreadScheduledExecutor().schedule(() -> {
-
-                try {
-                    LOG.info("Start election");
-                    ElectionMassage message = new ElectionMassage(InetAddress.getByName("172.16.0.1"), false);
-
-                    // Send Message to random node
-                    defaultClient.unicast(
-                            new ElectionPayloadConverter().encode(Command.ELECTION, message),
-                            context.getNodes().get((int)(Math.random()* context.getNodes().size())).ip(),
-                            DEFAULT_LISTEN_PORT
-                    );
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-
-            }, 1, TimeUnit.MINUTES);
         }
     }
 
     public void startMasterElection() {
+        try {
+            LOG.info("Start election");
+            ElectionMassage message = new ElectionMassage(InetAddress.getByName("172.16.0.1"), false);
 
+            // Send Message to random node
+            defaultClient.unicast(
+                    new ElectionPayloadConverter().encode(Command.ELECTION, message),
+                    context.getNodes().get((int)(Math.random()* context.getNodes().size())).ip(),
+                    DEFAULT_LISTEN_PORT
+            );
+        }catch (IOException e){
+            LOG.error(e);
+        }
     }
+
 }
