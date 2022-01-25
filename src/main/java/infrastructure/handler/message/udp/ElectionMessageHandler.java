@@ -1,9 +1,8 @@
-package infrastructure.handler.message;
+package infrastructure.handler.message.udp;
 
 import infrastructure.Command;
 import infrastructure.client.RemoteClient;
 import infrastructure.converter.PayloadConverter;
-import infrastructure.handler.message.udp.UdpMessageHandler;
 import infrastructure.system.message.ElectionMassage;
 import infrastructure.system.IPUtils;
 import infrastructure.system.Leader;
@@ -13,7 +12,6 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.InetAddress;
 
 import static configuration.Configuration.DEFAULT_LISTEN_PORT;
 

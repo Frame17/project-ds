@@ -58,13 +58,14 @@ public class Node {
             try {
                 Thread.sleep(500);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                LOG.error(e);
             }
         }
 
         if(context.getLeader() == null){
-            context.setLeader(new Leader(context.getLocalAddress(), context.getListenPort()));
-            context.actAsLeader();
+            startMasterElection();
+            // context.setLeader(new Leader(context.getLocalAddress(), context.getListenPort()));
+            // context.actAsLeader();
 
         }
     }
@@ -72,12 +73,12 @@ public class Node {
     public void startMasterElection() {
         try {
             LOG.info("Start election");
-            ElectionMassage message = new ElectionMassage(InetAddress.getByName("172.16.0.1"), false);
+            ElectionMassage message = new ElectionMassage(context.getLocalAddress(), false);
 
             // Send Message to random node
             defaultClient.unicast(
                     new ElectionPayloadConverter().encode(Command.ELECTION, message),
-                    context.getNodes().get((int)(Math.random()* context.getNodes().size())).ip(),
+                   context.getNeighbour().ip(),
                     DEFAULT_LISTEN_PORT
             );
         }catch (IOException e){

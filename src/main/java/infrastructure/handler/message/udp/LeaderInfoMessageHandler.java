@@ -1,9 +1,7 @@
-package infrastructure.handler.message;
+package infrastructure.handler.message.udp;
 
-import configuration.Configuration;
 import infrastructure.client.RemoteClient;
 import infrastructure.converter.PayloadConverter;
-import infrastructure.handler.message.udp.UdpMessageHandler;
 import infrastructure.system.RemoteNode;
 import infrastructure.system.message.LeaderInfoMessage;
 import infrastructure.system.SystemContext;
