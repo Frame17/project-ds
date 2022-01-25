@@ -13,7 +13,6 @@ public class StartAckPayloadConverter implements PayloadConverter<StartAckMessag
     @Override
     public StartAckMessage decode(byte[] payload) {
         try {
-
             ByteBuffer buffer = ByteBuffer.wrap(payload, 1, payload.length - 1);
             int leaderPort = buffer.getInt();
             byte[] leaderIp = new byte[4 * Byte.BYTES];

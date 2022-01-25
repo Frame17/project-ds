@@ -3,7 +3,6 @@ package infrastructure.handler.message.udp;
 import infrastructure.Command;
 import infrastructure.client.RemoteClient;
 import infrastructure.converter.PayloadConverter;
-import infrastructure.converter.StartAckPayloadConverter;
 import infrastructure.system.Leader;
 import infrastructure.system.SystemContext;
 import infrastructure.system.message.StartAckMessage;
