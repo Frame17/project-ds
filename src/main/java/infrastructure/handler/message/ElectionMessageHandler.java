@@ -3,6 +3,7 @@ package infrastructure.handler.message;
 import infrastructure.Command;
 import infrastructure.client.RemoteClient;
 import infrastructure.converter.PayloadConverter;
+import infrastructure.handler.message.udp.UdpMessageHandler;
 import infrastructure.system.message.ElectionMassage;
 import infrastructure.system.IPUtils;
 import infrastructure.system.Leader;
@@ -16,7 +17,7 @@ import java.net.InetAddress;
 
 import static configuration.Configuration.DEFAULT_LISTEN_PORT;
 
-public class ElectionMessageHandler implements MessageHandler{
+public class ElectionMessageHandler implements UdpMessageHandler {
 
     private final static Logger LOG = LogManager.getLogger(ElectionMessageHandler.class);
 
@@ -49,8 +50,8 @@ public class ElectionMessageHandler implements MessageHandler{
 
                 client.unicast(
                         converter.encode(Command.ELECTION, electionMassage),
-                        context.getNeighbour().getInetAddress(),
-                        context.getNeighbour().getPort());
+                        context.getNeighbour().ip(),
+                        context.getNeighbour().port());
                 participant = false;
 
                 // Not elected node
@@ -68,16 +69,16 @@ public class ElectionMessageHandler implements MessageHandler{
 
                     client.unicast(
                             converter.encode(Command.ELECTION, electionMassage),
-                            context.getNeighbour().getInetAddress(),
-                            context.getNeighbour().getPort());
+                            context.getNeighbour().ip(),
+                            context.getNeighbour().port());
                 } else if (mid_int < local_int && !participant) {
                     participant = true;
                     ElectionMassage newElectionMassage = new ElectionMassage(context.getLocalAddress(), false);
 
                     client.unicast(
                             converter.encode(Command.ELECTION, newElectionMassage),
-                            context.getNeighbour().getInetAddress(),
-                            context.getNeighbour().getPort());
+                            context.getNeighbour().ip(),
+                            context.getNeighbour().port());
                 } else if (mid_int < local_int && participant) {
                    // This can happen when two nodes have started the election, that's fine.
                 } else if (local_int == mid_int) {
@@ -86,8 +87,8 @@ public class ElectionMessageHandler implements MessageHandler{
                     ElectionMassage newElectionMassage = new ElectionMassage(context.getLocalAddress(), true);
                     client.unicast(
                             converter.encode(Command.ELECTION, newElectionMassage),
-                            context.getNeighbour().getInetAddress(),
-                            context.getNeighbour().getPort());
+                            context.getNeighbour().ip(),
+                            context.getNeighbour().port());
                 }
             }
             /*

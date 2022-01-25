@@ -3,6 +3,7 @@ package infrastructure.handler.message;
 import configuration.Configuration;
 import infrastructure.client.RemoteClient;
 import infrastructure.converter.PayloadConverter;
+import infrastructure.handler.message.udp.UdpMessageHandler;
 import infrastructure.system.RemoteNode;
 import infrastructure.system.message.LeaderInfoMessage;
 import infrastructure.system.SystemContext;
@@ -11,7 +12,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.net.DatagramPacket;
 
-public class LeaderInfoMessageHandler implements MessageHandler{
+public class LeaderInfoMessageHandler implements UdpMessageHandler {
 
     private final static Logger LOG = LogManager.getLogger(LeaderInfoMessageHandler.class);
 
@@ -27,7 +28,7 @@ public class LeaderInfoMessageHandler implements MessageHandler{
     public void handle(SystemContext context, DatagramPacket packet) {
         LeaderInfoMessage infoMessage = converter.decode(packet.getData());
 
-        RemoteNode remoteNode = new RemoteNode(infoMessage.neighbour(), infoMessage.port(), null);
+        RemoteNode remoteNode = new RemoteNode(infoMessage.neighbour(), infoMessage.port());
         context.setNeighbour(remoteNode);
 
         LOG.info("Set new neighbour {}", context.getNeighbour());
