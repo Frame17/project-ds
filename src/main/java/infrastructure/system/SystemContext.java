@@ -22,11 +22,21 @@ public class SystemContext {
     public final String id;
     public final int listenPort;
     private Leader leader;
+    private LeaderContext leaderContext;
     public final AtomicInteger healthCounter = new AtomicInteger();
 
     public SystemContext(String id, int listenPort) {
         this.id = id;
         this.listenPort = listenPort;
+    }
+
+    public boolean isLeader() {
+        try {
+            return leader.equals(new Leader(InetAddress.getLocalHost(), listenPort));
+        } catch (UnknownHostException e) {
+            LOG.error(e);
+            throw new RuntimeException(e);
+        }
     }
 
     public Leader getLeader() {
@@ -37,13 +47,12 @@ public class SystemContext {
         this.leader = leader;
     }
 
-    public boolean isLeader() {
-        try {
-            return leader.equals(new Leader(InetAddress.getLocalHost(), listenPort));
-        } catch (UnknownHostException e) {
-            LOG.error(e);
-            throw new RuntimeException(e);
-        }
+    public LeaderContext getLeaderContext() {
+        return leaderContext;
+    }
+
+    public void setLeaderContext(LeaderContext leaderContext) {
+        this.leaderContext = leaderContext;
     }
 
     public InetAddress getLocalAddress() throws UnknownHostException {
@@ -71,7 +80,7 @@ public class SystemContext {
     }
 
     private void formRing(){
-        nodes.sort(Comparator.comparing(remoteNode -> IPUtils.getIntRepresentation(remoteNode.getInetAddress())));
+        nodes.sort(Comparator.comparing(remoteNode -> IPUtils.getIntRepresentation(remoteNode.ip())));
         LOG.info("New Ring {}", Arrays.toString(this.getNodes().toArray()));
     }
 

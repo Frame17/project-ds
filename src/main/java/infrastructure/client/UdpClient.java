@@ -46,7 +46,7 @@ public class UdpClient implements RemoteClient<DatagramPacket> {
         listenExecutor.execute(() -> {
             try {
                 DatagramSocket socket = new DatagramSocket(port);
-                LOG.info("Listening for packets on {}", port);
+                LOG.info("Listening for udp packets on {}", port);
                 while (true) {
                     int size = Byte.BYTES + Integer.BYTES + 4;
                     DatagramPacket packet = new DatagramPacket(new byte[size], size);

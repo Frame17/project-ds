@@ -1,4 +1,4 @@
-package infrastructure.handler.message;
+package infrastructure.handler.message.udp;
 
 import infrastructure.Command;
 import infrastructure.client.RemoteClient;
@@ -16,7 +16,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class StartAckMessageHandler implements MessageHandler {
+public class StartAckMessageHandler implements UdpMessageHandler {
 
     private final static Logger LOG = LogManager.getLogger(StartAckMessageHandler.class);
 

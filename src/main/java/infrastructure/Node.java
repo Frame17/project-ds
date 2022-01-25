@@ -15,30 +15,39 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.nio.ByteBuffer;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static configuration.Configuration.DEFAULT_LISTEN_PORT;
 
 public class Node {
-
     private final static Logger LOG = LogManager.getLogger(Node.class);
 
     public final SystemContext context;
-    private final RemoteClient<DatagramPacket> client;
-    private final RequestHandler<DatagramPacket> requestHandler;
+    private final RemoteClient<DatagramPacket> defaultClient;
+    private final RequestHandler<DatagramPacket> defaultClientRequestHandler;
+    private final RemoteClient<byte[]> reliableClient;
+    private final RequestHandler<byte[]> reliableClientRequestHandler;
 
     public Node(Configuration configuration) {
         this.context = configuration.getContext();
-        this.client = configuration.getRemoteClient();
-        this.requestHandler = configuration.getRequestHandler();
+        this.defaultClient = configuration.getDefaultClient();
+        this.defaultClientRequestHandler = configuration.getDefaultClientRequestHandler();
+        this.reliableClient = configuration.getReliableClient();
+        this.reliableClientRequestHandler = configuration.getReliableClientRequestHandler();
     }
 
     public void joinSystem() throws IOException {
-        LOG.info("Join system");
+        LOG.info(context.id + " joins the system");
 
-        client.listen(context, requestHandler, context.listenPort);
+        defaultClient.listen(context, defaultClientRequestHandler, context.listenPort);
+        reliableClient.listen(context, reliableClientRequestHandler, context.listenPort);
 
+        ByteBuffer buffer = ByteBuffer.allocate(Byte.BYTES + Integer.BYTES);
+        buffer.put(Command.START.command);
+        buffer.putInt(context.listenPort);
+        defaultClient.broadcast(buffer.array());
         // May introduce extra thread
         int loopCount = 0;
 
@@ -47,7 +56,7 @@ public class Node {
             loopCount++;
 
             StartMessage startMessage = new StartMessage(context.listenPort);
-            client.broadcast(new StartPayloadConverter().encode(Command.START, startMessage));
+            defaultClient.broadcast(new StartPayloadConverter().encode(Command.START, startMessage));
 
             try {
                 Thread.sleep(500);
@@ -68,9 +77,9 @@ public class Node {
                     ElectionMassage message = new ElectionMassage(InetAddress.getByName("172.16.0.1"), false);
 
                     // Send Message to random node
-                    client.unicast(
+                    defaultClient.unicast(
                             new ElectionPayloadConverter().encode(Command.ELECTION, message),
-                            context.getNodes().get((int)(Math.random()* context.getNodes().size())).getInetAddress(),
+                            context.getNodes().get((int)(Math.random()* context.getNodes().size())).ip(),
                             DEFAULT_LISTEN_PORT
                     );
                 } catch (IOException e) {

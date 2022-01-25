@@ -1,4 +1,4 @@
-package infrastructure.handler.message;
+package infrastructure.handler.message.udp;
 
 import infrastructure.Command;
 import infrastructure.client.RemoteClient;
@@ -22,7 +22,7 @@ import java.util.Comparator;
 
 import static infrastructure.system.IdService.nodeId;
 
-public class StartMessageHandler implements MessageHandler {
+public class StartMessageHandler implements UdpMessageHandler {
 
     private final static Logger LOG = LogManager.getLogger(StartMessageHandler.class);
 
@@ -55,16 +55,16 @@ public class StartMessageHandler implements MessageHandler {
                     LOG.info("Add new Data-Node");
 
                     //TODO: Mode to "master-implementation"
-                    context.addNode(new RemoteNode(packet.getAddress(), port, null));
+                    context.addNode(new RemoteNode(packet.getAddress(), port));
 
                     if (context.getNodes().size() == 1) {
-                        client.unicast(buildLeaderInfoMessage(context, context.getNodes().get(0)), context.getNodes().get(0).getInetAddress(), port);
+                        client.unicast(buildLeaderInfoMessage(context, context.getNodes().get(0)), context.getNodes().get(0).ip(), port);
                     }else{
                         for (int i = context.getNodes().size() -1; i >= 0 ; i--) {
                             if (i == context.getNodes().size() -1) {
-                                client.unicast(buildLeaderInfoMessage(context, context.getNodes().get(0)), context.getNodes().get(i).getInetAddress(), port);
+                                client.unicast(buildLeaderInfoMessage(context, context.getNodes().get(0)), context.getNodes().get(i).ip(), port);
                             }else{
-                                client.unicast(buildLeaderInfoMessage(context, context.getNodes().get(i+1)), context.getNodes().get(i).getInetAddress(), port);
+                                client.unicast(buildLeaderInfoMessage(context, context.getNodes().get(i+1)), context.getNodes().get(i).ip(), port);
                             }
                         }
                     }
@@ -78,7 +78,7 @@ public class StartMessageHandler implements MessageHandler {
 
     private byte[] buildLeaderInfoMessage(SystemContext context, RemoteNode neighbour){
 
-        LeaderInfoMessage infoMessage = new LeaderInfoMessage(neighbour.getInetAddress(), neighbour.getPort());
+        LeaderInfoMessage infoMessage = new LeaderInfoMessage(neighbour.ip(), neighbour.port());
 
         return new LeaderInfoPayloadConverter().encode(Command.LEADER_INFO, infoMessage);
     }
