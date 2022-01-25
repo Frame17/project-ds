@@ -30,6 +30,14 @@ public class SystemContext {
         this.listenPort = listenPort;
     }
 
+    public Leader getLeader() {
+        return leader;
+    }
+
+    public void setLeader(Leader leader) {
+        this.leader = leader;
+    }
+
     public boolean isLeader() {
         try {
             return leader.equals(new Leader(InetAddress.getLocalHost(), listenPort));
@@ -37,14 +45,6 @@ public class SystemContext {
             LOG.error(e);
             throw new RuntimeException(e);
         }
-    }
-
-    public Leader getLeader() {
-        return leader;
-    }
-
-    public void setLeader(Leader leader) {
-        this.leader = leader;
     }
 
     public LeaderContext getLeaderContext() {

@@ -1,26 +1,15 @@
 package infrastructure.handler.message.udp;
 
-import com.google.common.net.InetAddresses;
 import infrastructure.Command;
 import infrastructure.client.RemoteClient;
-import infrastructure.converter.LeaderInfoPayloadConverter;
 import infrastructure.converter.PayloadConverter;
-import infrastructure.converter.StartAckPayloadConverter;
-import infrastructure.system.IPUtils;
-import infrastructure.system.RemoteNode;
 import infrastructure.system.SystemContext;
-import infrastructure.system.message.LeaderInfoMessage;
-import infrastructure.system.message.StartAckMessage;
-import infrastructure.system.message.StartMessage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.InetAddress;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.Comparator;
 
 import static infrastructure.system.IdService.nodeId;
 
@@ -30,9 +19,9 @@ public class StartMessageHandler implements UdpMessageHandler {
 
 
     private final RemoteClient<DatagramPacket> client;
-    private final PayloadConverter<StartMessage> converter;
+    private final PayloadConverter<Integer> converter;
 
-    public StartMessageHandler(RemoteClient<DatagramPacket> client, PayloadConverter<StartMessage> converter) {
+    public StartMessageHandler(RemoteClient<DatagramPacket> client, PayloadConverter<Integer> converter) {
         this.client = client;
         this.converter = converter;
     }
@@ -40,49 +29,24 @@ public class StartMessageHandler implements UdpMessageHandler {
     @Override
     public void handle(SystemContext context, DatagramPacket packet) {
         try {
-            StartMessage startMessage = converter.decode(packet.getData());
-            int port = startMessage.port();
+            int port = converter.decode(packet.getData());
 
             if (!context.id.equals(nodeId(packet.getAddress(), port))) {    // don't reply to own request
-
-                client.unicast(
-                        new StartAckPayloadConverter().encode(
-                                Command.START_ACK, new StartAckMessage(context.getLeader())
-                        ),
-                        packet.getAddress(),
-                        port
-                );
-
-                if (context.isLeader()) {
-                    LOG.info("Add new Data-Node");
-
-                    //TODO: Mode to "master-implementation"
-                    context.addNode(new RemoteNode(packet.getAddress(), port));
-                    LOG.info("New Ring {}", Arrays.toString(context.getNodes().toArray()));
-
-                    if (context.getNodes().size() == 1) {
-                        client.unicast(buildLeaderInfoMessage(context, context.getNodes().get(0)), context.getNodes().get(0).ip(), port);
-                    }else{
-                        for (int i = context.getNodes().size() -1; i >= 0 ; i--) {
-                            if (i == context.getNodes().size() -1) {
-                                client.unicast(buildLeaderInfoMessage(context, context.getNodes().get(0)), context.getNodes().get(i).ip(), port);
-                            }else{
-                                client.unicast(buildLeaderInfoMessage(context, context.getNodes().get(i+1)), context.getNodes().get(i).ip(), port);
-                            }
-                        }
-                    }
-                }
-
+                client.unicast(buildMessage(context), packet.getAddress(), port);
             }
         } catch (IOException e) {
             LOG.error(e);
         }
     }
 
-    private byte[] buildLeaderInfoMessage(SystemContext context, RemoteNode neighbour){
+    private byte[] buildMessage(SystemContext context) {
+        byte[] address = context.getLeader().leaderIp().getAddress();
+        ByteBuffer buffer = ByteBuffer.allocate(Byte.BYTES + Integer.BYTES + address.length);
 
-        LeaderInfoMessage infoMessage = new LeaderInfoMessage(neighbour.ip(), neighbour.port());
+        buffer.put(Command.START_ACK.command);
+        buffer.putInt(context.getLeader().leaderPort());
+        buffer.put(address);
 
-        return new LeaderInfoPayloadConverter().encode(Command.LEADER_INFO, infoMessage);
+        return buffer.array();
     }
 }
