@@ -6,8 +6,7 @@ import infrastructure.converter.ElectionPayloadConverter;
 import infrastructure.converter.StartPayloadConverter;
 import infrastructure.handler.request.RequestHandler;
 import infrastructure.system.RemoteNode;
-import infrastructure.system.message.ElectionMassage;
-import infrastructure.system.Leader;
+import infrastructure.system.message.ElectionMessage;
 import infrastructure.system.SystemContext;
 import infrastructure.system.message.StartMessage;
 import org.apache.logging.log4j.LogManager;
@@ -15,12 +14,6 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.InetAddress;
-import java.nio.ByteBuffer;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
-import static configuration.Configuration.DEFAULT_LISTEN_PORT;
 
 public class Node {
 
@@ -78,13 +71,13 @@ public class Node {
     public void startMasterElection() {
         try {
             LOG.info("Start election");
-            ElectionMassage message = new ElectionMassage(context.getLocalAddress(), false);
+            ElectionMessage message = new ElectionMessage(context.getLocalAddress(), false);
 
             // Send Message to the next neighbour
             defaultClient.unicast(
                     new ElectionPayloadConverter().encode(Command.ELECTION, message),
                    context.getNeighbour().ip(),
-                    DEFAULT_LISTEN_PORT
+                    context.getNeighbour().port()
             );
         }catch (IOException e){
             LOG.error(e);

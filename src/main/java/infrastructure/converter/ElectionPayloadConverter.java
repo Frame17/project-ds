@@ -1,16 +1,16 @@
 package infrastructure.converter;
 
 import infrastructure.Command;
-import infrastructure.system.message.ElectionMassage;
+import infrastructure.system.message.ElectionMessage;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 
-public class ElectionPayloadConverter implements PayloadConverter<ElectionMassage> {
+public class ElectionPayloadConverter implements PayloadConverter<ElectionMessage> {
 
     @Override
-    public ElectionMassage decode(byte[] payload) {
+    public ElectionMessage decode(byte[] payload) {
         try {
             ByteBuffer buffer = ByteBuffer.wrap(payload, 1, payload.length - 1);
 
@@ -20,7 +20,7 @@ public class ElectionPayloadConverter implements PayloadConverter<ElectionMassag
             int isLeader = buffer.getInt();
 
             InetAddress ip = InetAddress.getByAddress(ipB);
-            ElectionMassage electionMassage = new ElectionMassage(ip, isLeader == 1);
+            ElectionMessage electionMassage = new ElectionMessage(ip, isLeader == 1);
 
             return electionMassage;
         } catch (UnknownHostException e) {
@@ -29,7 +29,7 @@ public class ElectionPayloadConverter implements PayloadConverter<ElectionMassag
     }
 
     @Override
-    public byte[] encode(Command c, ElectionMassage record) {
+    public byte[] encode(Command c, ElectionMessage record) {
         byte[] address = record.mid().getAddress();
         ByteBuffer buffer = ByteBuffer.allocate(Byte.BYTES + Integer.BYTES + address.length);
 

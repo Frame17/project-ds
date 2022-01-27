@@ -3,7 +3,7 @@ package infrastructure.handler.message.udp;
 import infrastructure.Command;
 import infrastructure.client.RemoteClient;
 import infrastructure.converter.PayloadConverter;
-import infrastructure.system.message.ElectionMassage;
+import infrastructure.system.message.ElectionMessage;
 import infrastructure.system.IPUtils;
 import infrastructure.system.Leader;
 import infrastructure.system.SystemContext;
@@ -20,9 +20,9 @@ public class ElectionMessageHandler implements UdpMessageHandler {
     private final static Logger LOG = LogManager.getLogger(ElectionMessageHandler.class);
 
     private final RemoteClient<DatagramPacket> client;
-    private final PayloadConverter<ElectionMassage> converter;
+    private final PayloadConverter<ElectionMessage> converter;
 
-    public ElectionMessageHandler(RemoteClient<DatagramPacket> client, PayloadConverter<ElectionMassage> converter) {
+    public ElectionMessageHandler(RemoteClient<DatagramPacket> client, PayloadConverter<ElectionMessage> converter) {
         this.client = client;
         this.converter = converter;
     }
@@ -31,7 +31,7 @@ public class ElectionMessageHandler implements UdpMessageHandler {
 
     @Override
     public void handle(SystemContext context, DatagramPacket packet) {
-        ElectionMassage electionMassage = converter.decode(packet.getData());
+        ElectionMessage electionMassage = converter.decode(packet.getData());
 
         // LOG.info("Received election message from {} content {}", packet.getAddress().getHostAddress(), electionMassage);
 
@@ -71,7 +71,7 @@ public class ElectionMessageHandler implements UdpMessageHandler {
                             context.getNeighbour().port());
                 } else if (mid_int < local_int && !participant) {
                     participant = true;
-                    ElectionMassage newElectionMassage = new ElectionMassage(context.getLocalAddress(), false);
+                    ElectionMessage newElectionMassage = new ElectionMessage(context.getLocalAddress(), false);
 
                     client.unicast(
                             converter.encode(Command.ELECTION, newElectionMassage),
@@ -82,7 +82,7 @@ public class ElectionMessageHandler implements UdpMessageHandler {
                 } else if (local_int == mid_int) {
                     participant = false;
 
-                    ElectionMassage newElectionMassage = new ElectionMassage(context.getLocalAddress(), true);
+                    ElectionMessage newElectionMassage = new ElectionMessage(context.getLocalAddress(), true);
                     client.unicast(
                             converter.encode(Command.ELECTION, newElectionMassage),
                             context.getNeighbour().ip(),

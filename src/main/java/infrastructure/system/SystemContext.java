@@ -59,11 +59,6 @@ public class SystemContext {
         return InetAddress.getLocalHost();
     }
 
-    public int getListenPort(){
-        return listenPort;
-    }
-
-
     // election stuff
     //TODO: Different implementations for Data/Master-Node
     private RemoteNode neighbour;
