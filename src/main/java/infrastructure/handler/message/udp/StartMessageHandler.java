@@ -52,9 +52,7 @@ public class StartMessageHandler implements UdpMessageHandler {
                 if (context.isLeader()) {
                     LOG.info("Add new Data-Node");
 
-                    //TODO: Mode to "master-implementation"
                     context.addNode(new RemoteNode(packet.getAddress(), port));
-                    LOG.info("New Ring {}", Arrays.toString(context.getNodes().toArray()));
 
                     if (context.getNodes().size() == 1) {
                         client.unicast(buildLeaderInfoMessage(context, context.getNodes().get(0)), context.getNodes().get(0).ip(), port);

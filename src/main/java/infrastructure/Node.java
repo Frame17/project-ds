@@ -5,6 +5,7 @@ import infrastructure.client.RemoteClient;
 import infrastructure.converter.ElectionPayloadConverter;
 import infrastructure.converter.StartPayloadConverter;
 import infrastructure.handler.request.RequestHandler;
+import infrastructure.system.RemoteNode;
 import infrastructure.system.message.ElectionMassage;
 import infrastructure.system.Leader;
 import infrastructure.system.SystemContext;
@@ -63,6 +64,10 @@ public class Node {
         }
 
         if(context.getLeader() == null){
+
+            //TODO: add fault tolerant logic
+            context.setNeighbour(new RemoteNode(context.getLocalAddress(), context.listenPort));
+
             startMasterElection();
             // context.setLeader(new Leader(context.getLocalAddress(), context.getListenPort()));
             // context.actAsLeader();
@@ -75,7 +80,7 @@ public class Node {
             LOG.info("Start election");
             ElectionMassage message = new ElectionMassage(context.getLocalAddress(), false);
 
-            // Send Message to random node
+            // Send Message to the next neighbour
             defaultClient.unicast(
                     new ElectionPayloadConverter().encode(Command.ELECTION, message),
                    context.getNeighbour().ip(),

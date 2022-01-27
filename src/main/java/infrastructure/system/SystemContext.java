@@ -72,6 +72,8 @@ public class SystemContext {
 
     public void actAsLeader(){
         LOG.info("This node is now acting as leader {}", getLeader());
+        this.setLeaderContext(new LeaderContext());
+
         //TODO: Leader has to know each node, and form a ring...
     }
     public void addNode(RemoteNode node){
