@@ -1,4 +1,4 @@
-package infrastructure.handler.message;
+package infrastructure.handler.message.udp;
 
 import infrastructure.client.RemoteClient;
 import infrastructure.converter.PayloadConverter;
@@ -8,7 +8,7 @@ import infrastructure.system.SystemContext;
 import java.net.DatagramPacket;
 import java.util.HashMap;
 
-public class HealthMessageHandler implements MessageHandler {
+public class HealthMessageHandler implements UdpMessageHandler {
     private final RemoteClient<DatagramPacket> client;
     private final PayloadConverter<Integer> converter;
     private HashMap<Integer, Integer> HealthStatus = new HashMap<Integer, Integer>() ;

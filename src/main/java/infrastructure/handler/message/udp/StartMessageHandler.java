@@ -1,4 +1,4 @@
-package infrastructure.handler.message;
+package infrastructure.handler.message.udp;
 
 import infrastructure.Command;
 import infrastructure.client.RemoteClient;
@@ -13,7 +13,7 @@ import java.nio.ByteBuffer;
 
 import static infrastructure.system.IdService.nodeId;
 
-public class StartMessageHandler implements MessageHandler {
+public class StartMessageHandler implements UdpMessageHandler {
 
     private final static Logger LOG = LogManager.getLogger(StartMessageHandler.class);
 
