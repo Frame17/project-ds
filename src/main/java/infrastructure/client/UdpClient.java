@@ -58,4 +58,9 @@ public class UdpClient implements RemoteClient<DatagramPacket> {
             }
         });
     }
+
+    @Override
+    public void close() {
+        listenExecutor.shutdown();
+    }
 }

@@ -48,4 +48,9 @@ public class TcpClient implements RemoteClient<byte[]> {
             }
         });
     }
+
+    @Override
+    public void close() {
+        listenExecutor.shutdown();
+    }
 }

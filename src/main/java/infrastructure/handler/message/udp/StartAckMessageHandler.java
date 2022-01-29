@@ -16,9 +16,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class StartAckMessageHandler implements UdpMessageHandler {
-
     private final static Logger LOG = LogManager.getLogger(StartAckMessageHandler.class);
-
     private final RemoteClient<DatagramPacket> client;
     private final PayloadConverter<StartAckMessage> converter;
 
@@ -29,15 +27,15 @@ public class StartAckMessageHandler implements UdpMessageHandler {
 
     @Override
     public void handle(SystemContext context, DatagramPacket packet) {
-        StartAckMessage message = converter.decode(packet.getData());
-        Leader leader = message.leader();
+        if (context.getLeader() == null) {
+            StartAckMessage message = converter.decode(packet.getData());
+            Leader leader = message.leader();
 
-        LOG.info("Set new leader {}:{}", leader.leaderIp(), leader.leaderPort());
+            LOG.info("Set new leader {}:{}", leader.leaderIp(), leader.leaderPort());
+            context.setLeader(leader);
 
-        context.setLeader(leader);
-
-        //TODO: since each node responds to this message, this should only be called once. Or only the leader responds to the START-Command message
-        startHealthCheck(context);
+            startHealthCheck(context);
+        }
     }
 
     private void startHealthCheck(SystemContext context) {

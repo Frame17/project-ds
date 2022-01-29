@@ -26,12 +26,12 @@ public class StartAckPayloadConverter implements PayloadConverter<StartAckMessag
     }
 
     @Override
-    public byte[] encode(Command c, StartAckMessage record) {
-        byte[] address = record.leader().leaderIp().getAddress();
+    public byte[] encode(Command command, StartAckMessage payload) {
+        byte[] address = payload.leader().leaderIp().getAddress();
         ByteBuffer buffer = ByteBuffer.allocate(Byte.BYTES + Integer.BYTES + address.length);
 
-        buffer.put(c.command);
-        buffer.putInt(record.leader().leaderPort());
+        buffer.put(command.command);
+        buffer.putInt(payload.leader().leaderPort());
         buffer.put(address);
 
         return buffer.array();

@@ -13,30 +13,22 @@ public class ElectionPayloadConverter implements PayloadConverter<ElectionMessag
     public ElectionMessage decode(byte[] payload) {
         try {
             ByteBuffer buffer = ByteBuffer.wrap(payload, 1, payload.length - 1);
+            byte[] ip = new byte[4 * Byte.BYTES];
+            buffer.get(ip);
+            boolean isLeader = buffer.get() == 1;
 
-            byte[] ipB = new byte[4 * Byte.BYTES];
-            buffer.get(ipB);
-
-            int isLeader = buffer.getInt();
-
-            InetAddress ip = InetAddress.getByAddress(ipB);
-            ElectionMessage electionMassage = new ElectionMessage(ip, isLeader == 1);
-
-            return electionMassage;
+            return new ElectionMessage(InetAddress.getByAddress(ip), isLeader);
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public byte[] encode(Command c, ElectionMessage record) {
-        byte[] address = record.mid().getAddress();
-        ByteBuffer buffer = ByteBuffer.allocate(Byte.BYTES + Integer.BYTES + address.length);
-
-        buffer.put(c.command);
+    public byte[] encode(Command command, ElectionMessage payload) {
+        byte[] address = payload.candidate().getAddress();
+        ByteBuffer buffer = ByteBuffer.allocate(Byte.BYTES + address.length);
+        buffer.put(command.command);
         buffer.put(address);
-        buffer.putInt(record.isLeader()?1:0);
-
 
         return buffer.array();
     }

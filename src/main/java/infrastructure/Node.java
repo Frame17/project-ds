@@ -3,21 +3,23 @@ package infrastructure;
 import configuration.Configuration;
 import infrastructure.client.RemoteClient;
 import infrastructure.converter.ElectionPayloadConverter;
+import infrastructure.converter.PayloadConverter;
 import infrastructure.converter.StartPayloadConverter;
 import infrastructure.handler.request.RequestHandler;
-import infrastructure.system.RemoteNode;
-import infrastructure.system.message.ElectionMessage;
+import infrastructure.system.LeaderContext;
 import infrastructure.system.SystemContext;
+import infrastructure.system.message.ElectionMessage;
 import infrastructure.system.message.StartMessage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.InetAddress;
 
 public class Node {
-
     private final static Logger LOG = LogManager.getLogger(Node.class);
+    private final PayloadConverter<StartMessage> payloadConverter = new StartPayloadConverter();
 
     public final SystemContext context;
     private final RemoteClient<DatagramPacket> defaultClient;
@@ -31,6 +33,10 @@ public class Node {
         this.defaultClientRequestHandler = configuration.getDefaultClientRequestHandler();
         this.reliableClient = configuration.getReliableClient();
         this.reliableClientRequestHandler = configuration.getReliableClientRequestHandler();
+
+        if (context.isLeader()) {
+            context.setLeaderContext(new LeaderContext());
+        }
     }
 
     public void joinSystem() throws IOException {
@@ -39,49 +45,27 @@ public class Node {
         defaultClient.listen(context, defaultClientRequestHandler, context.listenPort);
         reliableClient.listen(context, reliableClientRequestHandler, context.listenPort);
 
-        // May introduce extra thread
-        int loopCount = 0;
-
-        // Send the Start-Message 5 times, if no leader ist detected, this node is the Leader
-        while (context.getLeader() == null && loopCount < 5){
-            loopCount++;
-
-            StartMessage startMessage = new StartMessage(context.listenPort);
-            defaultClient.broadcast(new StartPayloadConverter().encode(Command.START, startMessage));
-
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                LOG.error(e);
-            }
-        }
-
-        if(context.getLeader() == null){
-
-            //TODO: add fault tolerant logic
-            context.setNeighbour(new RemoteNode(context.getLocalAddress(), context.listenPort));
-
-            startMasterElection();
-            // context.setLeader(new Leader(context.getLocalAddress(), context.getListenPort()));
-            // context.actAsLeader();
-
-        }
+        defaultClient.broadcast(payloadConverter.encode(Command.START, new StartMessage(context.listenPort)));
     }
 
-    public void startMasterElection() {
+    public void shutdown() throws IOException {
+        defaultClient.close();
+        reliableClient.close();
+
+        Thread.currentThread().interrupt();
+    }
+
+    // todo - move to HealthMessageHandler after implementation
+    public void startMasterElection(SystemContext context) {
         try {
             LOG.info("Start election");
-            ElectionMessage message = new ElectionMessage(context.getLocalAddress(), false);
+            context.setElectionParticipant(true);
+            ElectionMessage message = new ElectionMessage(InetAddress.getLocalHost(), false);
 
-            // Send Message to the next neighbour
-            defaultClient.unicast(
-                    new ElectionPayloadConverter().encode(Command.ELECTION, message),
-                   context.getNeighbour().ip(),
-                    context.getNeighbour().port()
-            );
-        }catch (IOException e){
+            defaultClient.unicast(new ElectionPayloadConverter().encode(Command.ELECTION, message),
+                    context.getNeighbour().ip(), context.getNeighbour().port());
+        } catch (IOException e) {
             LOG.error(e);
         }
     }
-
 }

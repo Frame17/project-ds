@@ -11,19 +11,10 @@ import infrastructure.converter.StartPayloadConverter;
 import infrastructure.handler.message.tcp.FileUploadMessageHandler;
 import infrastructure.handler.message.tcp.TcpMessageHandler;
 import infrastructure.handler.message.udp.*;
-import infrastructure.handler.message.udp.ElectionMessageHandler;
-import infrastructure.handler.message.udp.LeaderInfoMessageHandler;
-import infrastructure.handler.message.tcp.FileUploadMessageHandler;
-import infrastructure.handler.message.tcp.TcpMessageHandler;
-import infrastructure.handler.message.udp.*;
 import infrastructure.handler.request.RequestHandler;
 import infrastructure.handler.request.TcpRequestHandler;
 import infrastructure.handler.request.UdpRequestHandler;
 import infrastructure.system.SystemContext;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -36,21 +27,21 @@ import static infrastructure.system.IdService.nodeId;
 public class Configuration {
     public static final int DEFAULT_LISTEN_PORT = 4711;
 
-    private final static Logger LOG = LogManager.getLogger(Configuration.class);
-
     public RequestHandler<DatagramPacket> getDefaultClientRequestHandler() {
         return new UdpRequestHandler(udpMessageHandlers(getDefaultClient()));
     }
 
     private Map<Command, UdpMessageHandler> udpMessageHandlers(RemoteClient<DatagramPacket> client) {
+        StartAckPayloadConverter startAckPayloadConverter = new StartAckPayloadConverter();
+
         HashMap<Command, UdpMessageHandler> messageHandlers = new HashMap<>();
-        messageHandlers.put(Command.START, new StartMessageHandler(client, new StartPayloadConverter()));
-        messageHandlers.put(Command.START_ACK, new StartAckMessageHandler(client, new StartAckPayloadConverter()));
+        messageHandlers.put(Command.START, new StartMessageHandler(client, new StartPayloadConverter(), startAckPayloadConverter));
+        messageHandlers.put(Command.START_ACK, new StartAckMessageHandler(client, startAckPayloadConverter));
         messageHandlers.put(Command.HEALTH, new HealthMessageHandler(client, null));
         messageHandlers.put(Command.HEALTH_ACK, new HealthAckMessageHandler());
 
         messageHandlers.put(Command.ELECTION, new ElectionMessageHandler(client, new ElectionPayloadConverter()));
-        messageHandlers.put(Command.LEADER_INFO, new LeaderInfoMessageHandler(client, new LeaderInfoPayloadConverter()));
+        messageHandlers.put(Command.NEIGHBOUR_INFO, new NeighbourInfoMessageHandler(client, new LeaderInfoPayloadConverter()));
 
         return messageHandlers;
     }
