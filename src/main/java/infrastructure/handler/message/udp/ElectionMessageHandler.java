@@ -4,6 +4,7 @@ import infrastructure.Command;
 import infrastructure.client.RemoteClient;
 import infrastructure.converter.PayloadConverter;
 import infrastructure.system.Leader;
+import infrastructure.system.LeaderContext;
 import infrastructure.system.SystemContext;
 import infrastructure.system.message.ElectionMessage;
 import org.apache.logging.log4j.LogManager;
@@ -53,10 +54,10 @@ public class ElectionMessageHandler implements UdpMessageHandler {
         }
     }
 
-    // todo - implement leader context setup
+    // todo - implement leader context recovery
     private void leaderSetup(SystemContext context) throws UnknownHostException {
         context.setElectionParticipant(false);
         context.setLeader(new Leader(InetAddress.getLocalHost(), context.listenPort));
-//        context.setLeaderContext();
+        context.setLeaderContext(new LeaderContext());
     }
 }
