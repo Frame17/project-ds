@@ -46,7 +46,8 @@ public class ApplicationTest {
         Node node = new Node(new TestConfiguration(randomPort(), null));
         node.joinSystem();
 
-        await().atMost(5, TimeUnit.SECONDS).until(() -> leader.equals(node.context.getLeader()));
+        await().atMost(5, TimeUnit.SECONDS)
+                .until(() -> leader.equals(node.context.getLeader()));
     }
 
     @Test
@@ -67,8 +68,9 @@ public class ApplicationTest {
         node.joinSystem();
         system.add(node);
 
-        system.get(0).startMasterElection();
-        // todo - finalize election test
+        system.get(0).shutdown();
+        await().atMost(5, TimeUnit.SECONDS)
+                .until(() -> system.get(1).context.isLeader() || system.get(2).context.isLeader());
     }
 
     private int randomPort() {

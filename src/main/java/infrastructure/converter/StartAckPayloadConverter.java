@@ -1,14 +1,17 @@
 package infrastructure.converter;
 
+import infrastructure.Command;
 import infrastructure.system.Leader;
+import infrastructure.system.message.StartAckMessage;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 
-public class StartAckPayloadConverter implements PayloadConverter<Leader> {
+public class StartAckPayloadConverter implements PayloadConverter<StartAckMessage> {
+
     @Override
-    public Leader convert(byte[] payload) {
+    public StartAckMessage decode(byte[] payload) {
         try {
             ByteBuffer buffer = ByteBuffer.wrap(payload, 1, payload.length - 1);
             int leaderPort = buffer.getInt();
@@ -16,9 +19,23 @@ public class StartAckPayloadConverter implements PayloadConverter<Leader> {
             buffer.get(leaderIp);
             InetAddress leader = InetAddress.getByAddress(leaderIp);
 
-            return new Leader(leader, leaderPort);
+            return new StartAckMessage(new Leader(leader, leaderPort));
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public byte[] encode(Command command, StartAckMessage message) {
+        byte[] address = message.leader().leaderIp().getAddress();
+        ByteBuffer buffer = ByteBuffer.allocate(Byte.BYTES + Integer.BYTES + address.length);
+
+        buffer.put(command.command);
+        buffer.putInt(message.leader().leaderPort());
+        buffer.put(address);
+
+        return buffer.array();
+    }
+
+
 }

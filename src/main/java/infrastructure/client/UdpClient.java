@@ -54,8 +54,13 @@ public class UdpClient implements RemoteClient<DatagramPacket> {
                     requestHandler.handle(context, packet);
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                LOG.error(e);
             }
         });
+    }
+
+    @Override
+    public void close() {
+        listenExecutor.shutdown();
     }
 }

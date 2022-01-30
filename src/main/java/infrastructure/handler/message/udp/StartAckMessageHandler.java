@@ -5,6 +5,7 @@ import infrastructure.client.RemoteClient;
 import infrastructure.converter.PayloadConverter;
 import infrastructure.system.Leader;
 import infrastructure.system.SystemContext;
+import infrastructure.system.message.StartAckMessage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -15,25 +16,26 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class StartAckMessageHandler implements UdpMessageHandler {
-
     private final static Logger LOG = LogManager.getLogger(StartAckMessageHandler.class);
-
     private final RemoteClient<DatagramPacket> client;
-    private final PayloadConverter<Leader> converter;
+    private final PayloadConverter<StartAckMessage> converter;
 
-    public StartAckMessageHandler(RemoteClient<DatagramPacket> client, PayloadConverter<Leader> converter) {
+    public StartAckMessageHandler(RemoteClient<DatagramPacket> client, PayloadConverter<StartAckMessage> converter) {
         this.client = client;
         this.converter = converter;
     }
 
     @Override
     public void handle(SystemContext context, DatagramPacket packet) {
-        Leader leader = converter.convert(packet.getData());
+        if (context.getLeader() == null) {
+            StartAckMessage message = converter.decode(packet.getData());
+            Leader leader = message.leader();
 
-        LOG.info("Set new leader {}:{}", leader.leaderIp(), leader.leaderPort());
+            LOG.info("Set new leader {}:{}", leader.leaderIp(), leader.leaderPort());
+            context.setLeader(leader);
 
-        context.setLeader(leader);
-        startHealthCheck(context);
+            startHealthCheck(context);
+        }
     }
 
     private void startHealthCheck(SystemContext context) {
