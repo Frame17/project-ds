@@ -36,6 +36,4 @@ public class StartAckPayloadConverter implements PayloadConverter<StartAckMessag
 
         return buffer.array();
     }
-
-
 }

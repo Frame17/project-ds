@@ -1,29 +1,24 @@
 package infrastructure.converter;
 
-import infrastructure.system.RemoteNode;
+import infrastructure.Command;
+import infrastructure.system.message.HealthMessage;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
 import java.nio.ByteBuffer;
 
-public class HealthPayloadConverter implements PayloadConverter<RemoteNode>{
-    RemoteNode NodeID;
+public class HealthPayloadConverter implements PayloadConverter<HealthMessage> {
 
     @Override
-    public RemoteNode convert(byte[] payload) {
-        // Each Node sends it´s RemoteNode-Object which will be used in the HashMap to update the counter. This method will return the RemoteNode-Object
+    public HealthMessage decode(byte[] payload) {
         ByteBuffer buffer = ByteBuffer.wrap(payload, 1, payload.length - 1);
-        byte[] RemoteNodeArray = new byte[buffer.remaining()];
-        buffer.get(RemoteNodeArray);
-        ByteArrayInputStream bais = new ByteArrayInputStream(RemoteNodeArray);
-        try{
-            ObjectInput in = new ObjectInputStream(bais);
-            NodeID = (RemoteNode) in.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        return NodeID;
+        return new HealthMessage(buffer.getInt());
+    }
+
+    @Override
+    public byte[] encode(Command command, HealthMessage message) {
+        ByteBuffer buffer = ByteBuffer.allocate(Byte.BYTES + Integer.BYTES);
+        buffer.put(Command.HEALTH.command);
+        buffer.putInt(message.port());
+
+        return buffer.array();
     }
 }

@@ -1,8 +1,12 @@
 import infrastructure.Command;
 import infrastructure.Node;
 import infrastructure.client.RemoteClient;
+import infrastructure.converter.HealthPayloadConverter;
 import infrastructure.system.Leader;
+import infrastructure.system.message.HealthMessage;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -16,15 +20,15 @@ import java.util.concurrent.TimeUnit;
 import static configuration.Configuration.DEFAULT_LISTEN_PORT;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 public class ApplicationTest {
-    private static Leader leader;
-    private static List<Node> system;
+    private Leader leader;
+    private List<Node> system;
     private final Random random = new Random();
 
-    @BeforeAll
-    static void setUp() {
+    @BeforeEach
+    void setUp() {
         try {
             leader = new Leader(InetAddress.getLocalHost(), DEFAULT_LISTEN_PORT);
 
@@ -39,6 +43,17 @@ public class ApplicationTest {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @AfterEach
+    void tearDown() {
+        system.forEach(node -> {
+            try {
+                node.shutdown();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Test
@@ -59,7 +74,10 @@ public class ApplicationTest {
         node.joinSystem();
 
         Thread.sleep(5000);
-        verify(remoteClient).unicast(eq(new byte[]{Command.HEALTH.command}), eq(leader.leaderIp()), eq(leader.leaderPort()));
+        HealthPayloadConverter healthPayloadConverter = new HealthPayloadConverter();
+        verify(remoteClient, atLeastOnce())
+                .unicast(eq(healthPayloadConverter.encode(Command.HEALTH, new HealthMessage(node.context.listenPort))),
+                        eq(leader.leaderIp()), eq(leader.leaderPort()));
     }
 
     @Test
@@ -69,7 +87,7 @@ public class ApplicationTest {
         system.add(node);
 
         system.get(0).shutdown();
-        await().atMost(5, TimeUnit.SECONDS)
+        await().atMost(20, TimeUnit.SECONDS)
                 .until(() -> system.get(1).context.isLeader() || system.get(2).context.isLeader());
     }
 
