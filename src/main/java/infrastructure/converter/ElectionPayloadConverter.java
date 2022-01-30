@@ -24,11 +24,12 @@ public class ElectionPayloadConverter implements PayloadConverter<ElectionMessag
     }
 
     @Override
-    public byte[] encode(Command command, ElectionMessage payload) {
-        byte[] address = payload.candidate().getAddress();
+    public byte[] encode(Command command, ElectionMessage message) {
+        byte[] address = message.candidate().getAddress();
         ByteBuffer buffer = ByteBuffer.allocate(Byte.BYTES + address.length);
         buffer.put(command.command);
         buffer.put(address);
+        buffer.put((byte) (message.isLeader() ? 1 : 0));
 
         return buffer.array();
     }

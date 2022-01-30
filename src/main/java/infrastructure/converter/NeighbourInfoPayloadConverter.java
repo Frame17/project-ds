@@ -7,7 +7,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 
-public class LeaderInfoPayloadConverter implements PayloadConverter<NeighbourInfoMessage> {
+public class NeighbourInfoPayloadConverter implements PayloadConverter<NeighbourInfoMessage> {
 
     @Override
     public NeighbourInfoMessage decode(byte[] payload) {
@@ -25,13 +25,13 @@ public class LeaderInfoPayloadConverter implements PayloadConverter<NeighbourInf
     }
 
     @Override
-    public byte[] encode(Command command, NeighbourInfoMessage payload) {
-        byte[] address = payload.neighbour().getAddress();
+    public byte[] encode(Command command, NeighbourInfoMessage message) {
+        byte[] address = message.neighbour().getAddress();
         ByteBuffer buffer = ByteBuffer.allocate(Byte.BYTES + address.length + Integer.BYTES);
 
         buffer.put(command.command);
         buffer.put(address);
-        buffer.putInt(payload.port());
+        buffer.putInt(message.port());
 
         return buffer.array();
     }

@@ -5,7 +5,7 @@ import infrastructure.client.RemoteClient;
 import infrastructure.client.TcpClient;
 import infrastructure.client.UdpClient;
 import infrastructure.converter.ElectionPayloadConverter;
-import infrastructure.converter.LeaderInfoPayloadConverter;
+import infrastructure.converter.NeighbourInfoPayloadConverter;
 import infrastructure.converter.StartAckPayloadConverter;
 import infrastructure.converter.StartPayloadConverter;
 import infrastructure.handler.message.tcp.FileUploadMessageHandler;
@@ -41,7 +41,7 @@ public class Configuration {
         messageHandlers.put(Command.HEALTH_ACK, new HealthAckMessageHandler());
 
         messageHandlers.put(Command.ELECTION, new ElectionMessageHandler(client, new ElectionPayloadConverter()));
-        messageHandlers.put(Command.NEIGHBOUR_INFO, new NeighbourInfoMessageHandler(client, new LeaderInfoPayloadConverter()));
+        messageHandlers.put(Command.NEIGHBOUR_INFO, new NeighbourInfoMessageHandler(client, new NeighbourInfoPayloadConverter()));
 
         return messageHandlers;
     }

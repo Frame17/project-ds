@@ -16,11 +16,11 @@ public class StartPayloadConverter implements PayloadConverter<StartMessage> {
     }
 
     @Override
-    public byte[] encode(Command command, StartMessage payload) {
+    public byte[] encode(Command command, StartMessage message) {
         ByteBuffer buffer = ByteBuffer.allocate(Byte.BYTES + Integer.BYTES);
 
         buffer.put(command.command);
-        buffer.putInt(payload.port());
+        buffer.putInt(message.port());
 
         return buffer.array();
     }
