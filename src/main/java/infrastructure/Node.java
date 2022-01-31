@@ -14,6 +14,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -47,7 +48,7 @@ public class Node {
         defaultClient.listen(context, defaultClientRequestHandler, context.listenPort);
         reliableClient.listen(context, reliableClientRequestHandler, context.listenPort);
 
-        defaultClient.broadcast(payloadConverter.encode(Command.START, new StartMessage(context.listenPort)));
+        defaultClient.broadcast(payloadConverter.encode(Command.START, new StartMessage(InetAddress.getLocalHost(), context.listenPort)));
     }
 
     private void setupLeader(SystemContext context) {

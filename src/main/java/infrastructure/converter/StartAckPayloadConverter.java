@@ -2,6 +2,7 @@ package infrastructure.converter;
 
 import infrastructure.Command;
 import infrastructure.system.Leader;
+import infrastructure.system.RemoteNode;
 import infrastructure.system.message.StartAckMessage;
 
 import java.net.InetAddress;
@@ -14,12 +15,14 @@ public class StartAckPayloadConverter implements PayloadConverter<StartAckMessag
     public StartAckMessage decode(byte[] payload) {
         try {
             ByteBuffer buffer = ByteBuffer.wrap(payload, 1, payload.length - 1);
-            int leaderPort = buffer.getInt();
             byte[] leaderIp = new byte[4 * Byte.BYTES];
             buffer.get(leaderIp);
-            InetAddress leader = InetAddress.getByAddress(leaderIp);
+            int leaderPort = buffer.getInt();
+            byte[] neighbourIp = new byte[4 * Byte.BYTES];
+            buffer.get(neighbourIp);
 
-            return new StartAckMessage(new Leader(leader, leaderPort));
+            return new StartAckMessage(new Leader(InetAddress.getByAddress(leaderIp), leaderPort),
+                    new RemoteNode(InetAddress.getByAddress(neighbourIp), buffer.getInt()));
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);
         }
@@ -27,12 +30,15 @@ public class StartAckPayloadConverter implements PayloadConverter<StartAckMessag
 
     @Override
     public byte[] encode(Command command, StartAckMessage message) {
-        byte[] address = message.leader().leaderIp().getAddress();
-        ByteBuffer buffer = ByteBuffer.allocate(Byte.BYTES + Integer.BYTES + address.length);
+        byte[] leaderIp = message.leader().ip().getAddress();
+        byte[] neighbourIp = message.neighbour().ip().getAddress();
+        ByteBuffer buffer = ByteBuffer.allocate(Byte.BYTES + leaderIp.length + Integer.BYTES + neighbourIp.length + Integer.BYTES);
 
         buffer.put(command.command);
-        buffer.putInt(message.leader().leaderPort());
-        buffer.put(address);
+        buffer.put(leaderIp);
+        buffer.putInt(message.leader().port());
+        buffer.put(neighbourIp);
+        buffer.putInt(message.neighbour().port());
 
         return buffer.array();
     }

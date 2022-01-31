@@ -26,8 +26,7 @@ public class HealthMessageHandler implements UdpMessageHandler {
             context.getLeaderContext().aliveNodes.put(new RemoteNode(packet.getAddress(), message.port()), 0);
 
             try {
-                client.unicast(new byte[]{Command.HEALTH_ACK.command},
-                        context.getLeader().leaderIp(), context.getLeader().leaderPort());
+                client.unicast(new byte[]{Command.HEALTH_ACK.command}, context.getLeader().ip(), context.getLeader().port());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

@@ -15,8 +15,6 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import static configuration.Configuration.DEFAULT_LISTEN_PORT;
-
 public class ElectionMessageHandler implements UdpMessageHandler {
     private final static Logger LOG = LogManager.getLogger(ElectionMessageHandler.class);
     private final RemoteClient<DatagramPacket> client;

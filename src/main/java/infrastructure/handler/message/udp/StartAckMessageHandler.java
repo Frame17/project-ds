@@ -34,34 +34,34 @@ public class StartAckMessageHandler implements UdpMessageHandler {
 
     @Override
     public void handle(SystemContext context, DatagramPacket packet) {
-        if (context.getLeader() == null) {
-            StartAckMessage message = converter.decode(packet.getData());
-            Leader leader = message.leader();
+        StartAckMessage message = converter.decode(packet.getData());
 
-            LOG.info("Set new leader {}:{}", leader.leaderIp(), leader.leaderPort());
-            context.setLeader(leader);
+        LOG.info(context.id + " sets new leader {}:{}", message.leader().ip(), message.leader().port());
+        context.setLeader(new Leader(message.leader().ip(), message.leader().port()));
+        LOG.info(context.id + " sets neighbour {}:{}", message.neighbour().ip(), message.neighbour().port());
+        context.setNeighbour(message.neighbour());
 
-            startHealthCheck(context);
-        }
+        startHealthCheck(context);
     }
 
     private void startHealthCheck(SystemContext context) {
-        LOG.info("Start health executor for " + context.id);
+        LOG.info(context.id + " starts health executor");
         threadPool.scheduleAtFixedRate(() -> {
             try {
-                LOG.info(context.id + " sends health message to {}:{}", context.getLeader().leaderIp(), context.getLeader().leaderPort());
+                LOG.info(context.id + " sends health message to {}:{}", context.getLeader().ip(), context.getLeader().port());
 
                 client.unicast(healthPayloadConverter.encode(Command.HEALTH, new HealthMessage(context.listenPort)),
-                        context.getLeader().leaderIp(), context.getLeader().leaderPort());
+                        context.getLeader().ip(), context.getLeader().port());
                 int leaderHealthCounter = context.healthCounter.incrementAndGet();
                 if (leaderHealthCounter > 3) {
                     startLeaderElection(context);
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 LOG.error(e);
                 throw new RuntimeException(e);
             }
         }, 0, 3, TimeUnit.SECONDS);
+        LOG.info(context.id + " started health executor");
     }
 
     private void startLeaderElection(SystemContext context) {

@@ -1,4 +1,6 @@
 package infrastructure.system.message;
 
-public record StartMessage(int port) {
+import java.net.InetAddress;
+
+public record StartMessage(InetAddress ip, int port) {
 }

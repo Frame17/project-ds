@@ -3,6 +3,7 @@ package infrastructure.handler.message.udp;
 import infrastructure.Command;
 import infrastructure.client.RemoteClient;
 import infrastructure.converter.PayloadConverter;
+import infrastructure.system.IdService;
 import infrastructure.system.RemoteNode;
 import infrastructure.system.SystemContext;
 import infrastructure.system.message.StartAckMessage;
@@ -12,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.InetAddress;
 
 public class StartMessageHandler implements UdpMessageHandler {
     private final static Logger LOG = LogManager.getLogger(StartMessageHandler.class);
@@ -33,10 +35,13 @@ public class StartMessageHandler implements UdpMessageHandler {
     public void handle(SystemContext context, DatagramPacket packet) {
         try {
             StartMessage startMessage = startConverter.decode(packet.getData());
-            client.unicast(startAckConverter.encode(Command.START_ACK, new StartAckMessage(context.getLeader())),
-                    packet.getAddress(), startMessage.port());
+            if (context.isLeader() && !context.id.equals(IdService.nodeId(startMessage.ip(), startMessage.port()))) {
+                RemoteNode neighbour = context.getNeighbour() != null ? context.getNeighbour()
+                        : new RemoteNode(InetAddress.getLocalHost(), context.listenPort);
+                context.setNeighbour(new RemoteNode(packet.getAddress(), startMessage.port()));
+                client.unicast(startAckConverter.encode(Command.START_ACK, new StartAckMessage(context.getLeader(), neighbour)),
+                        packet.getAddress(), startMessage.port());
 
-            if (context.isLeader()) {
                 context.getLeaderContext().aliveNodes.put(new RemoteNode(packet.getAddress(), startMessage.port()), 0);
             }
         } catch (IOException e) {

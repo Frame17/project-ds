@@ -5,7 +5,6 @@ import infrastructure.converter.HealthPayloadConverter;
 import infrastructure.system.Leader;
 import infrastructure.system.message.HealthMessage;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -20,7 +19,8 @@ import java.util.concurrent.TimeUnit;
 import static configuration.Configuration.DEFAULT_LISTEN_PORT;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
 
 public class ApplicationTest {
     private Leader leader;
@@ -37,7 +37,7 @@ public class ApplicationTest {
             node.joinSystem();
             system.add(node);
 
-            node = new Node(new TestConfiguration(11111, leader));
+            node = new Node(new TestConfiguration(11111, null));
             node.joinSystem();
             system.add(node);
         } catch (IOException e) {
@@ -77,7 +77,7 @@ public class ApplicationTest {
         HealthPayloadConverter healthPayloadConverter = new HealthPayloadConverter();
         verify(remoteClient, atLeastOnce())
                 .unicast(eq(healthPayloadConverter.encode(Command.HEALTH, new HealthMessage(node.context.listenPort))),
-                        eq(leader.leaderIp()), eq(leader.leaderPort()));
+                        eq(leader.ip()), eq(leader.port()));
     }
 
     @Test
