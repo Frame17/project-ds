@@ -1,4 +1,6 @@
 package infrastructure.system.message;
 
-public record HealthMessage(int port) {
+import infrastructure.system.RemoteNode;
+
+public record HealthMessage(RemoteNode node) {
 }

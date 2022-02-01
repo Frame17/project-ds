@@ -33,15 +33,12 @@ public class TcpClient implements RemoteClient<byte[]> {
     @Override
     public void listen(SystemContext context, RequestHandler<byte[]> requestHandler, int port) {
         listenExecutor.execute(() -> {
-            try {
-                ServerSocket serverSocket = new ServerSocket(port);
+            try (ServerSocket serverSocket = new ServerSocket(port);) {
                 LOG.info("Listening for tcp packets on {}", port);
-                while (true) {
-                    Socket clientSocket = serverSocket.accept();
-                    InputStream in = clientSocket.getInputStream();
-                    requestHandler.handle(context, in.readAllBytes());
-                    in.close();
-                    clientSocket.close();
+                while (!Thread.currentThread().isInterrupted()) {
+                    try (Socket clientSocket = serverSocket.accept(); InputStream in = clientSocket.getInputStream()) {
+                        requestHandler.handle(context, in.readAllBytes());
+                    }
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -51,6 +48,6 @@ public class TcpClient implements RemoteClient<byte[]> {
 
     @Override
     public void close() {
-        listenExecutor.shutdown();
+        listenExecutor.shutdownNow();
     }
 }

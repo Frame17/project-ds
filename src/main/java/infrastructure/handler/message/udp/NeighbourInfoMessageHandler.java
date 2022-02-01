@@ -20,7 +20,7 @@ public class NeighbourInfoMessageHandler implements UdpMessageHandler {
     public void handle(SystemContext context, DatagramPacket packet) {
         NeighbourInfoMessage message = converter.decode(packet.getData());
 
-        LOG.info(context.id + " sets neighbour {}:{}", message.neighbour().ip(), message.neighbour().port());
+        LOG.info(context.id + " sets neighbour {}", message.neighbour());
         context.setNeighbour(message.neighbour());
     }
 }
