@@ -31,14 +31,15 @@ public class Configuration {
     private Map<Command, UdpMessageHandler> udpMessageHandlers(RemoteClient<DatagramPacket> client) {
         StartAckPayloadConverter startAckPayloadConverter = new StartAckPayloadConverter();
         HealthPayloadConverter healthPayloadConverter = new HealthPayloadConverter();
+        NeighbourInfoPayloadConverter neighbourInfoPayloadConverter = new NeighbourInfoPayloadConverter();
 
         HashMap<Command, UdpMessageHandler> messageHandlers = new HashMap<>();
-        messageHandlers.put(Command.START, new StartMessageHandler(client, new StartPayloadConverter(), startAckPayloadConverter));
+        messageHandlers.put(Command.START, new StartMessageHandler(client, new StartPayloadConverter(), startAckPayloadConverter, neighbourInfoPayloadConverter));
         messageHandlers.put(Command.START_ACK, new StartAckMessageHandler(client, startAckPayloadConverter, healthPayloadConverter));
         messageHandlers.put(Command.HEALTH, new HealthMessageHandler(client, healthPayloadConverter));
         messageHandlers.put(Command.HEALTH_ACK, new HealthAckMessageHandler());
         messageHandlers.put(Command.ELECTION, new ElectionMessageHandler(client, new ElectionPayloadConverter()));
-        messageHandlers.put(Command.NEIGHBOUR_INFO, new NeighbourInfoMessageHandler(client, new NeighbourInfoPayloadConverter()));
+        messageHandlers.put(Command.NEIGHBOUR_INFO, new NeighbourInfoMessageHandler(neighbourInfoPayloadConverter));
 
         return messageHandlers;
     }

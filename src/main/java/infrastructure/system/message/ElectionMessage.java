@@ -1,7 +1,7 @@
 package infrastructure.system.message;
 
-import java.net.InetAddress;
+import infrastructure.system.RemoteNode;
 
-public record ElectionMessage(InetAddress candidate, boolean isLeader) {
+public record ElectionMessage(RemoteNode candidate, boolean isLeader) {
 
 }

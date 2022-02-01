@@ -5,6 +5,8 @@ import infrastructure.client.RemoteClient;
 import infrastructure.converter.ElectionPayloadConverter;
 import infrastructure.converter.PayloadConverter;
 import infrastructure.system.Leader;
+import infrastructure.system.LeaderContext;
+import infrastructure.system.RemoteNode;
 import infrastructure.system.SystemContext;
 import infrastructure.system.message.ElectionMessage;
 import infrastructure.system.message.HealthMessage;
@@ -38,8 +40,6 @@ public class StartAckMessageHandler implements UdpMessageHandler {
 
         LOG.info(context.id + " sets new leader {}:{}", message.leader().ip(), message.leader().port());
         context.setLeader(new Leader(message.leader().ip(), message.leader().port()));
-        LOG.info(context.id + " sets neighbour {}:{}", message.neighbour().ip(), message.neighbour().port());
-        context.setNeighbour(message.neighbour());
 
         startHealthCheck(context);
     }
@@ -55,6 +55,7 @@ public class StartAckMessageHandler implements UdpMessageHandler {
                 int leaderHealthCounter = context.healthCounter.incrementAndGet();
                 if (leaderHealthCounter > 3) {
                     startLeaderElection(context);
+                    context.healthCounter.set(0);
                 }
             } catch (Exception e) {
                 LOG.error(e);
@@ -67,11 +68,18 @@ public class StartAckMessageHandler implements UdpMessageHandler {
     private void startLeaderElection(SystemContext context) {
         try {
             LOG.info(context.id + " starts leader election");
-            context.setElectionParticipant(true);
-            ElectionMessage message = new ElectionMessage(InetAddress.getLocalHost(), false);
 
-            client.unicast(new ElectionPayloadConverter().encode(Command.ELECTION, message),
-                    context.getNeighbour().ip(), context.getNeighbour().port());
+            if (context.getNeighbour() == null) {   // this node is the only one left in the system
+                context.setLeader(new Leader(InetAddress.getLocalHost(), context.listenPort));
+                context.setLeaderContext(new LeaderContext());
+                LOG.info(context.id + " assigns itself leader");
+            } else {
+                context.setElectionParticipant(true);
+                ElectionMessage message = new ElectionMessage(new RemoteNode(InetAddress.getLocalHost(), context.listenPort), false);
+
+                client.unicast(new ElectionPayloadConverter().encode(Command.ELECTION, message),
+                        context.getNeighbour().ip(), context.getNeighbour().port());
+            }
         } catch (IOException e) {
             LOG.error(e);
         }

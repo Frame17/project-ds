@@ -1,6 +1,7 @@
 package infrastructure.converter;
 
 import infrastructure.Command;
+import infrastructure.system.RemoteNode;
 import infrastructure.system.message.NeighbourInfoMessage;
 
 import java.net.InetAddress;
@@ -18,7 +19,7 @@ public class NeighbourInfoPayloadConverter implements PayloadConverter<Neighbour
             buffer.get(neighbourIp);
             int port = buffer.getInt();
 
-            return new NeighbourInfoMessage(InetAddress.getByAddress(neighbourIp), port);
+            return new NeighbourInfoMessage(new RemoteNode(InetAddress.getByAddress(neighbourIp), port));
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);
         }
@@ -26,12 +27,12 @@ public class NeighbourInfoPayloadConverter implements PayloadConverter<Neighbour
 
     @Override
     public byte[] encode(Command command, NeighbourInfoMessage message) {
-        byte[] address = message.neighbour().getAddress();
+        byte[] address = message.neighbour().ip().getAddress();
         ByteBuffer buffer = ByteBuffer.allocate(Byte.BYTES + address.length + Integer.BYTES);
 
         buffer.put(command.command);
         buffer.put(address);
-        buffer.putInt(message.port());
+        buffer.putInt(message.neighbour().port());
 
         return buffer.array();
     }

@@ -18,11 +18,8 @@ public class StartAckPayloadConverter implements PayloadConverter<StartAckMessag
             byte[] leaderIp = new byte[4 * Byte.BYTES];
             buffer.get(leaderIp);
             int leaderPort = buffer.getInt();
-            byte[] neighbourIp = new byte[4 * Byte.BYTES];
-            buffer.get(neighbourIp);
 
-            return new StartAckMessage(new Leader(InetAddress.getByAddress(leaderIp), leaderPort),
-                    new RemoteNode(InetAddress.getByAddress(neighbourIp), buffer.getInt()));
+            return new StartAckMessage(new Leader(InetAddress.getByAddress(leaderIp), leaderPort));
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);
         }
@@ -31,14 +28,11 @@ public class StartAckPayloadConverter implements PayloadConverter<StartAckMessag
     @Override
     public byte[] encode(Command command, StartAckMessage message) {
         byte[] leaderIp = message.leader().ip().getAddress();
-        byte[] neighbourIp = message.neighbour().ip().getAddress();
-        ByteBuffer buffer = ByteBuffer.allocate(Byte.BYTES + leaderIp.length + Integer.BYTES + neighbourIp.length + Integer.BYTES);
+        ByteBuffer buffer = ByteBuffer.allocate(Byte.BYTES + leaderIp.length + Integer.BYTES);
 
         buffer.put(command.command);
         buffer.put(leaderIp);
         buffer.putInt(message.leader().port());
-        buffer.put(neighbourIp);
-        buffer.putInt(message.neighbour().port());
 
         return buffer.array();
     }

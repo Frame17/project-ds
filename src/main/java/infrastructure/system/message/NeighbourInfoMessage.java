@@ -1,6 +1,6 @@
 package infrastructure.system.message;
 
-import java.net.InetAddress;
+import infrastructure.system.RemoteNode;
 
-public record NeighbourInfoMessage(InetAddress neighbour, int port) {
+public record NeighbourInfoMessage(RemoteNode neighbour) {
 }

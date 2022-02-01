@@ -33,11 +33,11 @@ public class ApplicationTest {
             leader = new Leader(InetAddress.getLocalHost(), DEFAULT_LISTEN_PORT);
 
             system = new ArrayList<>();
-            Node node = new Node(new TestConfiguration(DEFAULT_LISTEN_PORT, leader));
+            Node node = new Node(new TestConfiguration(DEFAULT_LISTEN_PORT, leader, system));
             node.joinSystem();
             system.add(node);
 
-            node = new Node(new TestConfiguration(11111, null));
+            node = new Node(new TestConfiguration(11111, null, system));
             node.joinSystem();
             system.add(node);
         } catch (IOException e) {
@@ -58,7 +58,7 @@ public class ApplicationTest {
 
     @Test
     public void joinSystemTest() throws IOException {
-        Node node = new Node(new TestConfiguration(randomPort(), null));
+        Node node = new Node(new TestConfiguration(randomPort(), null, system));
         node.joinSystem();
 
         await().atMost(5, TimeUnit.SECONDS)
@@ -67,7 +67,7 @@ public class ApplicationTest {
 
     @Test
     public void healthcheckTest() throws IOException, InterruptedException {
-        TestConfiguration configuration = new TestConfiguration(randomPort(), null);
+        TestConfiguration configuration = new TestConfiguration(randomPort(), null, system);
         RemoteClient<DatagramPacket> remoteClient = configuration.getDefaultClient();
 
         Node node = new Node(configuration);
@@ -82,12 +82,12 @@ public class ApplicationTest {
 
     @Test
     public void masterElectionTest() throws IOException {
-        Node node = new Node(new TestConfiguration(randomPort(), null));
+        Node node = new Node(new TestConfiguration(randomPort(), null, system));
         node.joinSystem();
         system.add(node);
 
         system.get(0).shutdown();
-        await().atMost(20, TimeUnit.SECONDS)
+        await().atMost(30, TimeUnit.SECONDS)
                 .until(() -> system.get(1).context.isLeader() || system.get(2).context.isLeader());
     }
 
