@@ -43,7 +43,7 @@ public class FileUploadMessageHandler implements TcpMessageHandler {
             saveFile(fileName + "-0", chunk);
 
             ArrayList<FileChunk> fileChunks = new ArrayList<>();
-            fileChunks.add(new FileChunk(fileName + "-0", new RemoteNode(context.getLeader().leaderIp(), context.getLeader().leaderPort())));
+            fileChunks.add(new FileChunk(fileName + "-0", new RemoteNode(context.getLeader().ip(), context.getLeader().port())));
             for (int i = 0; i < aliveNodes.size(); i++) {
                 byte[] chunkName = (fileName + '-' + (i + 1)).getBytes(StandardCharsets.UTF_8);
                 ByteBuffer messageBuffer = ByteBuffer.allocate(Byte.BYTES + Integer.BYTES + chunkName.length + min(chunkSize, buffer.remaining()));
