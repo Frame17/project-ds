@@ -11,6 +11,7 @@ import infrastructure.handler.message.udp.*;
 import infrastructure.handler.request.RequestHandler;
 import infrastructure.handler.request.TcpRequestHandler;
 import infrastructure.handler.request.UdpRequestHandler;
+import infrastructure.system.Leader;
 import infrastructure.system.SystemContext;
 
 import java.net.DatagramPacket;
@@ -23,6 +24,16 @@ import static infrastructure.system.IdService.nodeId;
 
 public class Configuration {
     public static final int DEFAULT_LISTEN_PORT = 4711;
+    private boolean defaultLeader = false;
+
+    public Configuration(String[] args) {
+        for (String arg : args) {
+            if ("LEADER".equals(arg) || "leader".equals(arg)) {
+                this.defaultLeader = true;
+            }
+        }
+    }
+
 
     public RequestHandler<DatagramPacket> getDefaultClientRequestHandler() {
         return new UdpRequestHandler(udpMessageHandlers(getDefaultClient()));
@@ -64,7 +75,12 @@ public class Configuration {
 
     public SystemContext getContext() {
         try {
-            return new SystemContext(nodeId(InetAddress.getLocalHost(), DEFAULT_LISTEN_PORT), DEFAULT_LISTEN_PORT);
+            SystemContext context = new SystemContext(nodeId(InetAddress.getLocalHost(), DEFAULT_LISTEN_PORT), DEFAULT_LISTEN_PORT);
+
+            if (defaultLeader) {
+                context.setLeader(new Leader(InetAddress.getLocalHost(), context.listenPort));
+            }
+            return context;
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);
         }
