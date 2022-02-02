@@ -11,7 +11,7 @@ public class Application {
 
     public static void main(String[] args) throws IOException {
         LOG.info("Starting node");
-        Node node = new Node(new Configuration());
+        Node node = new Node(new Configuration(args));
         node.joinSystem();
     }
 }
