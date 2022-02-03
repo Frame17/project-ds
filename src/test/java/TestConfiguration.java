@@ -18,6 +18,8 @@ public class TestConfiguration extends Configuration {
     private final RemoteClient<DatagramPacket> remoteClient;
 
     public TestConfiguration(int port, Leader leader, List<Node> system) {
+        super(new String[0]);
+
         this.port = port;
         this.leader = leader;
         TestUdpClient spy = Mockito.spy(TestUdpClient.class);

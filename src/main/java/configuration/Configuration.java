@@ -1,13 +1,16 @@
 package configuration;
 
 import infrastructure.Command;
+import infrastructure.client.ReliableRemoteClient;
 import infrastructure.client.RemoteClient;
 import infrastructure.client.TcpClient;
 import infrastructure.client.UdpClient;
 import infrastructure.converter.*;
+import infrastructure.handler.message.tcp.FileReadMessageHandler;
 import infrastructure.handler.message.tcp.FileUploadMessageHandler;
 import infrastructure.handler.message.tcp.TcpMessageHandler;
 import infrastructure.handler.message.udp.*;
+import infrastructure.handler.request.ReliableRequestHandler;
 import infrastructure.handler.request.RequestHandler;
 import infrastructure.handler.request.TcpRequestHandler;
 import infrastructure.handler.request.UdpRequestHandler;
@@ -55,13 +58,14 @@ public class Configuration {
         return messageHandlers;
     }
 
-    public RequestHandler<byte[]> getReliableClientRequestHandler() {
+    public ReliableRequestHandler<byte[]> getReliableClientRequestHandler() {
         return new TcpRequestHandler(tcpMessageHandlers(getReliableClient()));
     }
 
-    private Map<Command, TcpMessageHandler> tcpMessageHandlers(RemoteClient<byte[]> client) {
+    private Map<Command, TcpMessageHandler> tcpMessageHandlers(ReliableRemoteClient<byte[]> client) {
         HashMap<Command, TcpMessageHandler> messageHandlers = new HashMap<>();
         messageHandlers.put(Command.FILE_UPLOAD, new FileUploadMessageHandler(client));
+        messageHandlers.put(Command.FILE_READ, new FileReadMessageHandler(client));
         return messageHandlers;
     }
 
@@ -69,7 +73,7 @@ public class Configuration {
         return new UdpClient();
     }
 
-    public RemoteClient<byte[]> getReliableClient() {
+    public ReliableRemoteClient<byte[]> getReliableClient() {
         return new TcpClient();
     }
 

@@ -1,10 +1,12 @@
 package infrastructure;
 
 import configuration.Configuration;
+import infrastructure.client.ReliableRemoteClient;
 import infrastructure.client.RemoteClient;
 import infrastructure.converter.NeighbourInfoPayloadConverter;
 import infrastructure.converter.PayloadConverter;
 import infrastructure.converter.StartPayloadConverter;
+import infrastructure.handler.request.ReliableRequestHandler;
 import infrastructure.handler.request.RequestHandler;
 import infrastructure.system.IdService;
 import infrastructure.system.LeaderContext;
@@ -31,8 +33,8 @@ public class Node {
     public final SystemContext context;
     private final RemoteClient<DatagramPacket> defaultClient;
     private final RequestHandler<DatagramPacket> defaultClientRequestHandler;
-    private final RemoteClient<byte[]> reliableClient;
-    private final RequestHandler<byte[]> reliableClientRequestHandler;
+    private final ReliableRemoteClient<byte[]> reliableClient;
+    private final ReliableRequestHandler<byte[]> reliableClientRequestHandler;
 
     public Node(Configuration configuration) {
         this.context = configuration.getContext();
