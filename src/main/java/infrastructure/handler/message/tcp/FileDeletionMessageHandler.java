@@ -5,7 +5,9 @@ import infrastructure.client.RemoteClient;
 import infrastructure.system.FileChunk;
 import infrastructure.system.RemoteNode;
 import infrastructure.system.SystemContext;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -17,7 +19,7 @@ public class FileDeletionMessageHandler implements TcpMessageHandler {
     // ToDo implement handler
     // is a Leader node function. receives a message from a client with the file name?? in the message
     // searches for filename. gets all locations from file chunks and deletes the corresponding files
-
+    private final static Logger LOG = LogManager.getLogger(FileDeletionMessageHandler.class);
     private final RemoteClient<byte[]> client;
 
     public FileDeletionMessageHandler(RemoteClient<byte[]> client) {
@@ -26,7 +28,7 @@ public class FileDeletionMessageHandler implements TcpMessageHandler {
 
     @Override
     public void handle(SystemContext context, byte[] message) {
-        //decoding the message. massage
+        //decoding the message
         ByteBuffer buffer = ByteBuffer.wrap(message, 1, message.length - 1);
         int fileNameLength = buffer.getInt();
         byte[] fileNameBytes = new byte[fileNameLength];
@@ -57,12 +59,21 @@ public class FileDeletionMessageHandler implements TcpMessageHandler {
                     }
                 }
                 //after every deletion message has been sent. Remove Filename from list of chunks
-
+                chunksDistributionTable.remove(fileName);
             }else{
                 // Log that file is not found
+                LOG.info(context.id + "File {} has not been found", fileName);
             }
         }else{
             //if a non leader receives the deletion Massages he needs to delete the file with the file name
+                File fileToDelete = new File(fileName);
+                if(fileToDelete.delete()){
+                    //log file chunk got deleted
+                    LOG.info(context.id + "File chunk {} has been deleted", fileName);
+                }else{
+                    //log file chunk could not be deleted
+                    LOG.info(context.id + "File chunk {} could not be deleted", fileName);
+                }
         }
     }
 }

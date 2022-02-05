@@ -5,6 +5,7 @@ import infrastructure.client.RemoteClient;
 import infrastructure.client.TcpClient;
 import infrastructure.client.UdpClient;
 import infrastructure.converter.*;
+import infrastructure.handler.message.tcp.FileDeletionMessageHandler;
 import infrastructure.handler.message.tcp.FileUploadMessageHandler;
 import infrastructure.handler.message.tcp.TcpMessageHandler;
 import infrastructure.handler.message.udp.*;
@@ -51,6 +52,7 @@ public class Configuration {
     private Map<Command, TcpMessageHandler> tcpMessageHandlers(RemoteClient<byte[]> client) {
         HashMap<Command, TcpMessageHandler> messageHandlers = new HashMap<>();
         messageHandlers.put(Command.FILE_UPLOAD, new FileUploadMessageHandler(client));
+        messageHandlers.put(Command.FILE_DELETE, new FileDeletionMessageHandler(client));
         return messageHandlers;
     }
 
