@@ -4,5 +4,9 @@
 
 For easier debugging, start gradle task `jib:DockerBuild`.
 
-Start new Container `docker run -it --rm javadistfs/project-ds:1.0-SNAPSHOT
-`
+Start new Container `docker run -it --rm javadistfs/project-ds:1.0-SNAPSHOT` and Start Node.
+
+Start Container as initial Leader:
+```
+docker run -it --rm javadistfs/project-ds:1.0-SNAPSHOT LEADER
+```
