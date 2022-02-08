@@ -36,29 +36,29 @@ public class StartMessageHandler implements UdpMessageHandler {
     }
 
     @Override
-    public void handle(SystemContext context, DatagramPacket packet) {
+    public void handle(SystemContext context, DatagramPacket packet, RemoteNode sender) {
         try {
             StartMessage startMessage = startConverter.decode(packet.getData());
 
             if (!context.id.equals(IdService.nodeId(startMessage.ip(), startMessage.port()))) {      // do not handle own broadcast message
-                RemoteNode sender = new RemoteNode(startMessage.ip(), startMessage.port());
+                RemoteNode senderNode = new RemoteNode(startMessage.ip(), startMessage.port());
 
                 if (context.isLeader()) {
                     client.unicast(startAckConverter.encode(Command.START_ACK, new StartAckMessage(context.getLeader())),
                             startMessage.ip(), startMessage.port());
 
-                    context.getLeaderContext().aliveNodes.put(sender, 0);
+                    context.getLeaderContext().aliveNodes.put(senderNode, 0);
                 } else {
                     RemoteNode current = new RemoteNode(InetAddress.getLocalHost(), context.listenPort);
 
                     if (context.getNeighbour() == null) {
                         client.unicast(neighbourInfoConverter.encode(Command.NEIGHBOUR_INFO, new NeighbourInfoMessage(current)),
                                 startMessage.ip(), startMessage.port());
-                        context.setNeighbour(sender);
-                    } else if (senderIpBetweenCurrentAndNeighbour(context, current, sender)) {
+                        context.setNeighbour(senderNode);
+                    } else if (senderIpBetweenCurrentAndNeighbour(context, current, senderNode)) {
                         client.unicast(neighbourInfoConverter.encode(Command.NEIGHBOUR_INFO, new NeighbourInfoMessage(context.getNeighbour())),
                                 startMessage.ip(), startMessage.port());
-                        context.setNeighbour(sender);
+                        context.setNeighbour(senderNode);
                     }
                 }
             }

@@ -35,7 +35,7 @@ public class StartAckMessageHandler implements UdpMessageHandler {
     }
 
     @Override
-    public void handle(SystemContext context, DatagramPacket packet) {
+    public void handle(SystemContext context, DatagramPacket packet, RemoteNode sender) {
         StartAckMessage message = converter.decode(packet.getData());
 
         LOG.info(context.id + " sets new leader {}:{}", message.leader().ip(), message.leader().port());

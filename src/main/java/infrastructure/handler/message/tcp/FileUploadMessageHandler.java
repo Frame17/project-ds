@@ -26,7 +26,7 @@ public class FileUploadMessageHandler implements TcpMessageHandler {
     }
 
     @Override
-    public void handle(SystemContext context, byte[] message) {
+    public void handle(SystemContext context, byte[] message, RemoteNode sender) {
         ByteBuffer buffer = ByteBuffer.wrap(message, 1, message.length - 1);
         int fileNameLength = buffer.getInt();
         byte[] fileNameBytes = new byte[fileNameLength];

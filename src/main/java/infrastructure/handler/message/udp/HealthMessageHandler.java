@@ -3,6 +3,7 @@ package infrastructure.handler.message.udp;
 import infrastructure.Command;
 import infrastructure.client.RemoteClient;
 import infrastructure.converter.PayloadConverter;
+import infrastructure.system.RemoteNode;
 import infrastructure.system.SystemContext;
 import infrastructure.system.message.HealthMessage;
 import org.apache.logging.log4j.LogManager;
@@ -22,7 +23,7 @@ public class HealthMessageHandler implements UdpMessageHandler {
     }
 
     @Override
-    public void handle(SystemContext context, DatagramPacket packet) {
+    public void handle(SystemContext context, DatagramPacket packet, RemoteNode sender) {
         if (context.isLeader()) {
             HealthMessage message = converter.decode(packet.getData());
             context.getLeaderContext().aliveNodes.put(message.node(), 0);

@@ -23,7 +23,7 @@ public class ElectionMessageHandler implements UdpMessageHandler {
     }
 
     @Override
-    public void handle(SystemContext context, DatagramPacket packet) {
+    public void handle(SystemContext context, DatagramPacket packet, RemoteNode sender) {
         ElectionMessage electionMessage = converter.decode(packet.getData());
         LOG.info(context.id + " receives election message from {} content {}", packet.getAddress().getHostAddress(), electionMessage);
 

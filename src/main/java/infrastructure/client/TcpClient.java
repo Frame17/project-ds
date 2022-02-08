@@ -1,6 +1,7 @@
 package infrastructure.client;
 
 import infrastructure.handler.request.RequestHandler;
+import infrastructure.system.RemoteNode;
 import infrastructure.system.SystemContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,7 +38,7 @@ public class TcpClient implements RemoteClient<byte[]> {
                 LOG.info("Listening for tcp packets on {}", port);
                 while (!Thread.currentThread().isInterrupted()) {
                     try (Socket clientSocket = serverSocket.accept(); InputStream in = clientSocket.getInputStream()) {
-                        requestHandler.handle(context, in.readAllBytes());
+                        requestHandler.handle(context, in.readAllBytes(), new RemoteNode(clientSocket.getInetAddress(), clientSocket.getPort()));
                     }
                 }
             } catch (IOException e) {

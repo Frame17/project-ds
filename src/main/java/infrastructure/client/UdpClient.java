@@ -1,6 +1,7 @@
 package infrastructure.client;
 
 import infrastructure.handler.request.RequestHandler;
+import infrastructure.system.RemoteNode;
 import infrastructure.system.SystemContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -53,7 +54,7 @@ public class UdpClient implements RemoteClient<DatagramPacket> {
                     int size = 1024;
                     DatagramPacket packet = new DatagramPacket(new byte[size], size);
                     socket.receive(packet);
-                    requestHandler.handle(context, packet);
+                    requestHandler.handle(context, packet, new RemoteNode(packet.getAddress(), packet.getPort()));
                 }
                 socket.disconnect();
             } catch (IOException e) {

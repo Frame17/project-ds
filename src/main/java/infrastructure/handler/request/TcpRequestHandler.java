@@ -2,6 +2,7 @@ package infrastructure.handler.request;
 
 import infrastructure.Command;
 import infrastructure.handler.message.tcp.TcpMessageHandler;
+import infrastructure.system.RemoteNode;
 import infrastructure.system.SystemContext;
 
 import java.util.Arrays;
@@ -17,11 +18,11 @@ public class TcpRequestHandler implements RequestHandler<byte[]> {
     }
 
     @Override
-    public void handle(SystemContext context, byte[] request) {
+    public void handle(SystemContext context, byte[] request, RemoteNode sender) {
         var command = Arrays.stream(Command.values())
                 .collect(Collectors.toMap(it -> it.command, Function.identity()))
                 .get(request[0]);
         
-        messageHandlers.get(command).handle(context, request);
+        messageHandlers.get(command).handle(context, request, sender);
     }
 }
