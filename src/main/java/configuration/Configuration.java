@@ -52,7 +52,7 @@ public class Configuration {
     private Map<Command, TcpMessageHandler> tcpMessageHandlers(RemoteClient<byte[]> client) {
         HashMap<Command, TcpMessageHandler> messageHandlers = new HashMap<>();
         messageHandlers.put(Command.FILE_UPLOAD, new FileUploadMessageHandler(client));
-        messageHandlers.put(Command.FILE_DELETE, new FileDeletionMessageHandler(client));
+        messageHandlers.put(Command.FILE_DELETE, new FileDeletionMessageHandler(client, new FileDeletionPayloadConverter() ));
         return messageHandlers;
     }
 
