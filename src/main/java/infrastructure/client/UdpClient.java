@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static configuration.Configuration.DEFAULT_LISTEN_PORT;
 
 public class UdpClient implements RemoteClient<DatagramPacket> {
+    public static final int PACKET_SIZE = 32768;
     private final static Logger LOG = LogManager.getLogger(UdpClient.class);
     private final ExecutorService listenExecutor = Executors.newSingleThreadExecutor();
     private final AtomicBoolean closed = new AtomicBoolean(false);
@@ -24,7 +25,7 @@ public class UdpClient implements RemoteClient<DatagramPacket> {
     public void unicast(byte[] message, InetAddress ip, int port) throws IOException {
         if (!closed.get()) {
             DatagramSocket socket = new DatagramSocket();
-            DatagramPacket packet = new DatagramPacket(message, message.length, ip, port);
+            DatagramPacket packet = new DatagramPacket(message, PACKET_SIZE, ip, port);
             socket.send(packet);
             socket.close();
         }
@@ -36,7 +37,7 @@ public class UdpClient implements RemoteClient<DatagramPacket> {
             DatagramSocket socket = new DatagramSocket();
             socket.setBroadcast(true);
 
-            DatagramPacket packet = new DatagramPacket(message, message.length, InetAddress.getByName("255.255.255.255"), DEFAULT_LISTEN_PORT);
+            DatagramPacket packet = new DatagramPacket(message, PACKET_SIZE, InetAddress.getByName("255.255.255.255"), DEFAULT_LISTEN_PORT);
             LOG.info("Send broadcast to {}", packet.getPort());
 
             socket.send(packet);
@@ -50,8 +51,7 @@ public class UdpClient implements RemoteClient<DatagramPacket> {
             try (DatagramSocket socket = new DatagramSocket(port)) {
                 LOG.info("Listening for udp packets on {}", port);
                 while (!Thread.currentThread().isInterrupted()) {
-                    int size = 1024;
-                    DatagramPacket packet = new DatagramPacket(new byte[size], size);
+                    DatagramPacket packet = new DatagramPacket(new byte[PACKET_SIZE], PACKET_SIZE);
                     socket.receive(packet);
                     requestHandler.handle(context, packet);
                 }

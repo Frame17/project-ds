@@ -9,7 +9,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class SystemContext {
     private final static Logger LOG = LogManager.getLogger(SystemContext.class);
-
     public final String id;
     public final int listenPort;
     private Leader leader;
@@ -17,6 +16,7 @@ public class SystemContext {
     public final AtomicInteger healthCounter = new AtomicInteger();
     private RemoteNode neighbour;
     private boolean electionParticipant;
+    private final ReliableClientContext reliableClientContext = new ReliableClientContext();
 
     public SystemContext(String id, int listenPort) {
         this.id = id;
@@ -62,5 +62,9 @@ public class SystemContext {
 
     public void setElectionParticipant(boolean electionParticipant) {
         this.electionParticipant = electionParticipant;
+    }
+
+    public ReliableClientContext getReliableClientContext() {
+        return reliableClientContext;
     }
 }
