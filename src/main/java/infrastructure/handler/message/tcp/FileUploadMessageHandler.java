@@ -21,6 +21,7 @@ import static java.lang.Math.ceil;
 import static java.lang.Math.min;
 
 public class FileUploadMessageHandler implements TcpMessageHandler {
+    public static final int REPLICATION_NUMBER = 1;
     private final RemoteClient<byte[]> client;
     private final PayloadConverter<FileUploadMessage> converter;
 
@@ -44,6 +45,17 @@ public class FileUploadMessageHandler implements TcpMessageHandler {
 
             ArrayList<FileChunk> fileChunks = new ArrayList<>();
             fileChunks.add(new FileChunk(fileUploadMessage.fileName() + "-0", new RemoteNode(context.getLeader().ip(), context.getLeader().port())));
+            for (int i = 0; i < REPLICATION_NUMBER && i < aliveNodes.size(); i++) {
+                RemoteNode target = aliveNodes.get(i);
+                try {
+                    client.unicast(converter.encode(Command.FILE_UPLOAD, new FileUploadMessage(fileUploadMessage.fileName() + '-' + (i + 1), chunk)),
+                            target.ip(), target.port());
+                    fileChunks.add(new FileChunk(fileUploadMessage.fileName() + "-0", target));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
             for (int i = 0; i < aliveNodes.size(); i++) {
                 chunk = new byte[chunkSize];
                 buffer.get(chunk);
@@ -52,7 +64,13 @@ public class FileUploadMessageHandler implements TcpMessageHandler {
                     RemoteNode target = aliveNodes.get(i);
                     client.unicast(converter.encode(Command.FILE_UPLOAD, new FileUploadMessage(fileUploadMessage.fileName() + '-' + (i + 1), chunk)),
                             target.ip(), target.port());
-                    fileChunks.add(new FileChunk(fileUploadMessage.fileName() + '-' + (i + 1), new RemoteNode(target.ip(), target.port())));
+                    fileChunks.add(new FileChunk(fileUploadMessage.fileName() + '-' + (i + 1), target));
+                    for (int j = 0; j < REPLICATION_NUMBER && j < aliveNodes.size(); j++) {
+                        target = aliveNodes.get((j + i + 1) % aliveNodes.size());
+                        client.unicast(converter.encode(Command.FILE_UPLOAD, new FileUploadMessage(fileUploadMessage.fileName() + '-' + (i + 1), chunk)),
+                                target.ip(), target.port());
+                        fileChunks.add(new FileChunk(fileUploadMessage.fileName() + "-0", target));
+                    }
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
