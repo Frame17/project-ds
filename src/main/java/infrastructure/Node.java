@@ -41,6 +41,8 @@ public class Node {
         this.reliableClient = configuration.getReliableClient();
         this.reliableClientRequestHandler = configuration.getFileOperationsRequestHandler();
 
+        context.setSelf(this);
+
         if (context.isLeader()) {
             setupLeader(context);
         }
@@ -55,7 +57,7 @@ public class Node {
         defaultClient.broadcast(startConverter.encode(Command.START, new StartMessage(InetAddress.getLocalHost(), context.listenPort)));
     }
 
-    private void setupLeader(SystemContext context) {
+    public void setupLeader(SystemContext context) {
         context.setLeaderContext(new LeaderContext());
 
         ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(1);

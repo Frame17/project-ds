@@ -5,26 +5,35 @@ import infrastructure.client.RemoteClient;
 import infrastructure.converter.PayloadConverter;
 import infrastructure.system.*;
 import infrastructure.system.message.ElectionMessage;
+import infrastructure.system.message.RecoveryMessage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class ElectionMessageHandler implements UdpMessageHandler {
     private final static Logger LOG = LogManager.getLogger(ElectionMessageHandler.class);
     private final RemoteClient<DatagramPacket> client;
-    private final PayloadConverter<ElectionMessage> converter;
+    private final PayloadConverter<ElectionMessage> electionConverter;
+    private final PayloadConverter<RecoveryMessage> recoveryConverter;
 
-    public ElectionMessageHandler(RemoteClient<DatagramPacket> client, PayloadConverter<ElectionMessage> converter) {
+    public ElectionMessageHandler(RemoteClient<DatagramPacket> client, PayloadConverter<ElectionMessage> electionConverter, PayloadConverter<RecoveryMessage> recoveryConverter) {
         this.client = client;
-        this.converter = converter;
+        this.electionConverter = electionConverter;
+        this.recoveryConverter = recoveryConverter;
     }
 
     @Override
     public void handle(SystemContext context, DatagramPacket packet) {
-        ElectionMessage electionMessage = converter.decode(packet.getData());
+        ElectionMessage electionMessage = electionConverter.decode(packet.getData());
         LOG.info(context.id + " receives election message from {} content {}", packet.getAddress().getHostAddress(), electionMessage);
 
         try {
@@ -32,14 +41,14 @@ public class ElectionMessageHandler implements UdpMessageHandler {
 
             if (compare > 0) {
                 if (!context.isElectionParticipant()) {
-                    client.unicast(converter.encode(Command.ELECTION, new ElectionMessage(new RemoteNode(InetAddress.getLocalHost(), context.listenPort), false)),
+                    client.unicast(electionConverter.encode(Command.ELECTION, new ElectionMessage(new RemoteNode(InetAddress.getLocalHost(), context.listenPort), false)),
                             context.getNeighbour().ip(), context.getNeighbour().port());
                     context.setElectionParticipant(true);
                 }
             } else if (compare == 0) {
                 if (!electionMessage.isLeader()) {
                     leaderSetup(context);
-                    client.unicast(converter.encode(Command.ELECTION, new ElectionMessage(electionMessage.candidate(), true)),
+                    client.unicast(electionConverter.encode(Command.ELECTION, new ElectionMessage(electionMessage.candidate(), true)),
                             context.getNeighbour().ip(), context.getNeighbour().port());
                     context.setElectionParticipant(false);
                 }
@@ -47,7 +56,7 @@ public class ElectionMessageHandler implements UdpMessageHandler {
                 if (electionMessage.isLeader()) {
                     context.setLeader(new Leader(electionMessage.candidate().ip(), electionMessage.candidate().port()));
                 } else {
-                    client.unicast(converter.encode(Command.ELECTION, electionMessage),
+                    client.unicast(electionConverter.encode(Command.ELECTION, electionMessage),
                             context.getNeighbour().ip(), context.getNeighbour().port());
                     context.setElectionParticipant(true);
                 }
@@ -57,10 +66,16 @@ public class ElectionMessageHandler implements UdpMessageHandler {
         }
     }
 
-    // todo - implement leader context recovery
     private void leaderSetup(SystemContext context) throws UnknownHostException {
         context.setElectionParticipant(false);
         context.setLeader(new Leader(InetAddress.getLocalHost(), context.listenPort));
-        context.setLeaderContext(new LeaderContext());
+        context.getSelf().setupLeader(context);
+
+        try {
+            client.broadcast(recoveryConverter.encode(Command.RECOVERY,
+                    new RecoveryMessage(new RemoteNode(InetAddress.getLocalHost(), context.listenPort), Collections.emptyList())));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
