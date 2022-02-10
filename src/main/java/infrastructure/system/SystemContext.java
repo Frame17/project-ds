@@ -11,6 +11,7 @@ public class SystemContext {
     private final static Logger LOG = LogManager.getLogger(SystemContext.class);
     public final String id;
     public final int listenPort;
+    public final int filesListenPort;
     private Leader leader;
     private LeaderContext leaderContext;
     public final AtomicInteger healthCounter = new AtomicInteger();
@@ -18,9 +19,10 @@ public class SystemContext {
     private boolean electionParticipant;
     private final ReliableClientContext reliableClientContext = new ReliableClientContext();
 
-    public SystemContext(String id, int listenPort) {
+    public SystemContext(String id, int listenPort, int filesListenPort) {
         this.id = id;
         this.listenPort = listenPort;
+        this.filesListenPort = filesListenPort;
     }
 
     public Leader getLeader() {

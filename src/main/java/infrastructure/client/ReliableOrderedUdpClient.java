@@ -17,13 +17,14 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static infrastructure.client.UdpClient.PACKET_SIZE;
 
-public class ReliableOrderedUdpClient implements RemoteClient<byte[]> {
+public class ReliableOrderedUdpClient implements RemoteClient<DatagramPacket> {
     private final static Logger LOG = LogManager.getLogger(ReliableOrderedUdpClient.class);
     private final ExecutorService listenExecutor = Executors.newSingleThreadExecutor();
     private final PayloadConverter<ResendMessage> converter;
@@ -40,7 +41,7 @@ public class ReliableOrderedUdpClient implements RemoteClient<byte[]> {
     public void unicast(byte[] message, InetAddress ip, int port) throws IOException {
         ReliableClientContext reliableClientContext = context.getReliableClientContext();
         RemoteNode target = new RemoteNode(ip, port);
-        int sequenceCounter = reliableClientContext.sendSequences.getOrDefault(target, 0) + 1;
+        int sequenceCounter = reliableClientContext.sendSequences.getOrDefault(target, 0);
 
         if (!reliableClientContext.previousMessages.containsKey(target)) {
             Queue<Pair<Integer, byte[]>> queue = new ArrayDeque<>();
@@ -54,7 +55,7 @@ public class ReliableOrderedUdpClient implements RemoteClient<byte[]> {
         buffer.putInt(sequenceCounter);
         buffer.put(message);
         baseClient.unicast(buffer.array(), ip, port);
-        reliableClientContext.sendSequences.put(target, sequenceCounter);
+        reliableClientContext.sendSequences.put(target, sequenceCounter + 1);
     }
 
     @Override
@@ -63,7 +64,7 @@ public class ReliableOrderedUdpClient implements RemoteClient<byte[]> {
     }
 
     @Override
-    public void listen(SystemContext context, RequestHandler<byte[]> requestHandler, int port) {
+    public void listen(SystemContext context, RequestHandler<DatagramPacket> requestHandler, int port) {
         ReliableClientContext reliableClientContext = context.getReliableClientContext();
 
         listenExecutor.execute(() -> {
@@ -88,7 +89,7 @@ public class ReliableOrderedUdpClient implements RemoteClient<byte[]> {
         });
     }
 
-    private boolean deliver(SystemContext context, RequestHandler<byte[]> requestHandler, DatagramPacket packet) throws IOException {
+    private boolean deliver(SystemContext context, RequestHandler<DatagramPacket> requestHandler, DatagramPacket packet) throws IOException {
         ReliableClientContext reliableClientContext = context.getReliableClientContext();
 
         ByteBuffer buffer = ByteBuffer.wrap(packet.getData());
@@ -98,7 +99,8 @@ public class ReliableOrderedUdpClient implements RemoteClient<byte[]> {
         Integer receivedSequenceNumber = reliableClientContext.receiveSequences.getOrDefault(sender, 0);
 
         if (sequenceNumber == receivedSequenceNumber) {
-            requestHandler.handle(context, buffer.slice(3, PACKET_SIZE).array());
+            byte[] array = Arrays.copyOfRange(packet.getData(), 4, PACKET_SIZE);
+            requestHandler.handle(context, new DatagramPacket(array, array.length, packet.getAddress(), packet.getPort()));
             reliableClientContext.receiveSequences.put(sender, receivedSequenceNumber + 1);
         } else if (sequenceNumber > receivedSequenceNumber) {
             reliableClientContext.holdBackQueue.add(new Pair<>(sequenceNumber, packet));

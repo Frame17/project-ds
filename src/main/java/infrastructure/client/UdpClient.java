@@ -25,7 +25,7 @@ public class UdpClient implements RemoteClient<DatagramPacket> {
     public void unicast(byte[] message, InetAddress ip, int port) throws IOException {
         if (!closed.get()) {
             DatagramSocket socket = new DatagramSocket();
-            DatagramPacket packet = new DatagramPacket(message, PACKET_SIZE, ip, port);
+            DatagramPacket packet = new DatagramPacket(message, message.length, ip, port);
             socket.send(packet);
             socket.close();
         }
@@ -37,7 +37,7 @@ public class UdpClient implements RemoteClient<DatagramPacket> {
             DatagramSocket socket = new DatagramSocket();
             socket.setBroadcast(true);
 
-            DatagramPacket packet = new DatagramPacket(message, PACKET_SIZE, InetAddress.getByName("255.255.255.255"), DEFAULT_LISTEN_PORT);
+            DatagramPacket packet = new DatagramPacket(message, message.length, InetAddress.getByName("255.255.255.255"), DEFAULT_LISTEN_PORT);
             LOG.info("Send broadcast to {}", packet.getPort());
 
             socket.send(packet);

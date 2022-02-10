@@ -3,47 +3,56 @@ package infrastructure.handler.message.tcp;
 import infrastructure.Command;
 import infrastructure.client.RemoteClient;
 import infrastructure.converter.PayloadConverter;
+import infrastructure.handler.message.udp.UdpMessageHandler;
+import infrastructure.system.IdService;
 import infrastructure.system.SystemContext;
 import infrastructure.system.message.FileEditMessage;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.DatagramPacket;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 import static java.lang.Math.ceil;
 
-public class FileEditMessageHandler implements TcpMessageHandler {
-    private final RemoteClient<byte[]> client;
+public class FileEditMessageHandler implements UdpMessageHandler {
+    private final RemoteClient<DatagramPacket> client;
     private final PayloadConverter<FileEditMessage> converter;
 
-    public FileEditMessageHandler(RemoteClient<byte[]> client, PayloadConverter<FileEditMessage> converter) {
+    public FileEditMessageHandler(RemoteClient<DatagramPacket> client, PayloadConverter<FileEditMessage> converter) {
         this.client = client;
         this.converter = converter;
     }
 
     @Override
-    public void handle(SystemContext context, byte[] message) {
-        FileEditMessage fileEditMessage = converter.decode(message);
+    public void handle(SystemContext context, DatagramPacket packet) {
+        FileEditMessage fileEditMessage = converter.decode(packet.getData());
 
         if (context.isLeader()) {
             ByteBuffer buffer = ByteBuffer.wrap(fileEditMessage.file());
             int chunkSize = (int) ceil((double) fileEditMessage.file().length / (1 + context.getLeaderContext().aliveNodes.size()));
-            byte[] chunk = new byte[chunkSize];
-            buffer.get(chunk);
-            replaceFile(fileEditMessage.fileName() + "-0", chunk);
+            Map<String, byte[]> fileChunks = new HashMap<>();
+            for (int i = 0; i < context.getLeaderContext().aliveNodes.size() + 1; i++) {
+                byte[] chunk = new byte[chunkSize];
+                buffer.get(chunk);
+                fileChunks.put(fileEditMessage.fileName() + '-' + i, chunk);
+            }
 
             context.getLeaderContext().chunksDistributionTable.get(fileEditMessage.fileName())
                     .forEach(fileChunk -> {
-                        byte[] editChunk = new byte[chunkSize];
-                        buffer.get(editChunk);
-
-                        try {
-                            client.unicast(converter.encode(Command.FILE_EDIT, new FileEditMessage(fileChunk.name(), editChunk)),
-                                    fileChunk.node().ip(), fileChunk.node().port());
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
+                        if (context.id.equals(IdService.nodeId(fileChunk.node().ip(), fileChunk.node().port()))) {
+                            replaceFile(fileChunk.name(), fileChunks.get(fileChunk.name()));
+                        } else {
+                            try {
+                                client.unicast(converter.encode(Command.FILE_EDIT, new FileEditMessage(fileChunk.name(), fileChunks.get(fileChunk.name()))),
+                                        fileChunk.node().ip(), fileChunk.node().port() + 1);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
                         }
                     });
         } else {
