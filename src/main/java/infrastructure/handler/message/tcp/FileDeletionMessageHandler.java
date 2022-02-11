@@ -31,7 +31,7 @@ public class FileDeletionMessageHandler implements UdpMessageHandler {
     @Override
     public void handle(SystemContext context, DatagramPacket packet) {
         FileDeletionMessage deletionMessage = converter.decode(packet.getData());
-        //when the leader receives a deletion message he needs to find all the nodes which have chunks of the data. Then it resends the deletion message with the corresponding file name
+        //when the leader receives a deletion message he needs to find all the nodes which have chunks of the data. Then it resends the deletion message with the corresponding file fileName
         //to the found nodes
         if (context.isLeader()) {
             HashMap<String, List<FileChunk>> chunksDistributionTable = context.getLeaderContext().chunksDistributionTable;
@@ -40,7 +40,7 @@ public class FileDeletionMessageHandler implements UdpMessageHandler {
                 List<FileChunk> fileChunkList = chunksDistributionTable.get(deletionMessage.filename());
 
                 for (FileChunk fileChunk : fileChunkList) {
-                    //for each node in the fileChunkList a message is sent
+                    //for each client in the fileChunkList a message is sent
                     String chunkName = fileChunk.name();
                     RemoteNode target = fileChunk.node();
                     FileDeletionMessage chunkMessage = new FileDeletionMessage(chunkName);

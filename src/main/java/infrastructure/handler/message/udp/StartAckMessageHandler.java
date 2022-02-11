@@ -69,7 +69,7 @@ public class StartAckMessageHandler implements UdpMessageHandler {
         try {
             LOG.info(context.id + " starts leader election");
 
-            if (context.getNeighbour() == null) {   // this node is the only one left in the system
+            if (context.getNeighbour() == null) {   // this client is the only one left in the system
                 context.setLeader(new Leader(InetAddress.getLocalHost(), context.listenPort));
                 context.setLeaderContext(new LeaderContext());
                 LOG.info(context.id + " assigns itself leader");
