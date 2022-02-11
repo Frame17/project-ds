@@ -2,72 +2,82 @@ package infrastructure.handler.message.tcp;
 
 import infrastructure.Command;
 import infrastructure.client.RemoteClient;
+import infrastructure.converter.PayloadConverter;
+import infrastructure.handler.message.udp.UdpMessageHandler;
 import infrastructure.system.FileChunk;
 import infrastructure.system.RemoteNode;
 import infrastructure.system.SystemContext;
+import infrastructure.system.message.FileUploadMessage;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.DatagramPacket;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import static java.lang.Math.ceil;
-import static java.lang.Math.min;
 
-public class FileUploadMessageHandler implements TcpMessageHandler {
-    private final RemoteClient<byte[]> client;
+public class FileUploadMessageHandler implements UdpMessageHandler {
+    public static final int REPLICATION_NUMBER = 1;
+    private final RemoteClient<DatagramPacket> client;
+    private final PayloadConverter<FileUploadMessage> converter;
 
-    public FileUploadMessageHandler(RemoteClient<byte[]> client) {
+    public FileUploadMessageHandler(RemoteClient<DatagramPacket> client, PayloadConverter<FileUploadMessage> converter) {
         this.client = client;
+        this.converter = converter;
     }
 
     @Override
-    public void handle(SystemContext context, byte[] message) {
-        ByteBuffer buffer = ByteBuffer.wrap(message, 1, message.length - 1);
-        int fileNameLength = buffer.getInt();
-        byte[] fileNameBytes = new byte[fileNameLength];
-        buffer.get(fileNameBytes);
-        String fileName = new String(fileNameBytes, StandardCharsets.UTF_8);
+    public void handle(SystemContext context, DatagramPacket packet) {
+        FileUploadMessage fileUploadMessage = converter.decode(packet.getData());
 
         if (context.isLeader()) {
             List<RemoteNode> aliveNodes = context.getLeaderContext().aliveNodes.keySet().stream().toList();
-            HashMap<String, List<FileChunk>> chunksDistributionTable = context.getLeaderContext().chunksDistributionTable;
 
-            int chunkSize = (int) ceil((double) buffer.remaining() / (1 + context.getLeaderContext().aliveNodes.size()));
+            ByteBuffer buffer = ByteBuffer.wrap(fileUploadMessage.file());
+            int chunkSize = (int) ceil((double) fileUploadMessage.file().length / (1 + context.getLeaderContext().aliveNodes.size()));
             byte[] chunk = new byte[chunkSize];
             buffer.get(chunk);
-            saveFile(fileName + "-0", chunk);
+            saveFile(fileUploadMessage.fileName() + "-0", chunk);
 
             ArrayList<FileChunk> fileChunks = new ArrayList<>();
-            fileChunks.add(new FileChunk(fileName + "-0", new RemoteNode(context.getLeader().ip(), context.getLeader().port())));
-            for (int i = 0; i < aliveNodes.size(); i++) {
-                byte[] chunkName = (fileName + '-' + (i + 1)).getBytes(StandardCharsets.UTF_8);
-                ByteBuffer messageBuffer = ByteBuffer.allocate(Byte.BYTES + Integer.BYTES + chunkName.length + min(chunkSize, buffer.remaining()));
-                messageBuffer.put(Command.FILE_UPLOAD.command);
-                messageBuffer.putInt(chunkName.length);
-                messageBuffer.put(chunkName);
-                chunk = new byte[chunkSize];
-                buffer.get(chunk);
-                messageBuffer.put(chunk);
-
+            fileChunks.add(new FileChunk(fileUploadMessage.fileName() + "-0", new RemoteNode(context.getLeader().ip(), context.getLeader().port())));
+            for (int i = 0; i < REPLICATION_NUMBER && i < aliveNodes.size(); i++) {
+                RemoteNode target = aliveNodes.get(i);
                 try {
-                    RemoteNode target = aliveNodes.get(i);
-                    client.unicast(messageBuffer.array(), target.ip(), target.port());
-                    fileChunks.add(new FileChunk(fileName + '-' + (i + 1), new RemoteNode(target.ip(), target.port())));
+                    client.unicast(converter.encode(Command.FILE_UPLOAD, new FileUploadMessage(fileUploadMessage.fileName() + '-' + (i + 1), chunk)),
+                            target.ip(), target.port() + 1);
+                    fileChunks.add(new FileChunk(fileUploadMessage.fileName() + "-0", target));
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
             }
 
-            chunksDistributionTable.put(fileName, fileChunks);
+            for (int i = 0; i < aliveNodes.size(); i++) {
+                chunk = new byte[chunkSize];
+                buffer.get(chunk);
+
+                try {
+                    RemoteNode target = aliveNodes.get(i);
+                    client.unicast(converter.encode(Command.FILE_UPLOAD, new FileUploadMessage(fileUploadMessage.fileName() + '-' + (i + 1), chunk)),
+                            target.ip(), target.port() + 1);
+                    fileChunks.add(new FileChunk(fileUploadMessage.fileName() + '-' + (i + 1), target));
+                    for (int j = 0; j < REPLICATION_NUMBER && j < aliveNodes.size(); j++) {
+                        target = aliveNodes.get((j + i + 1) % aliveNodes.size());
+                        client.unicast(converter.encode(Command.FILE_UPLOAD, new FileUploadMessage(fileUploadMessage.fileName() + '-' + (i + 1), chunk)),
+                                target.ip(), target.port() + 1);
+                        fileChunks.add(new FileChunk(fileUploadMessage.fileName() + '-' + (i + 1), target));
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            context.getLeaderContext().chunksDistributionTable.put(fileUploadMessage.fileName(), fileChunks);
         } else {
-            byte[] chunk = new byte[buffer.remaining()];
-            buffer.get(chunk);
-            saveFile(fileName, chunk);
+            saveFile(fileUploadMessage.fileName(), fileUploadMessage.file());
         }
     }
 

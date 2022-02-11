@@ -31,15 +31,15 @@ public class Node {
     public final SystemContext context;
     private final RemoteClient<DatagramPacket> defaultClient;
     private final RequestHandler<DatagramPacket> defaultClientRequestHandler;
-    private final RemoteClient<byte[]> reliableClient;
-    private final RequestHandler<byte[]> reliableClientRequestHandler;
+    private final RemoteClient<DatagramPacket> reliableClient;
+    private final RequestHandler<DatagramPacket> reliableClientRequestHandler;
 
     public Node(Configuration configuration) {
         this.context = configuration.getContext();
         this.defaultClient = configuration.getDefaultClient();
         this.defaultClientRequestHandler = configuration.getDefaultClientRequestHandler();
         this.reliableClient = configuration.getReliableClient();
-        this.reliableClientRequestHandler = configuration.getReliableClientRequestHandler();
+        this.reliableClientRequestHandler = configuration.getFileOperationsRequestHandler();
 
         if (context.isLeader()) {
             setupLeader(context);
@@ -50,7 +50,7 @@ public class Node {
         LOG.info(context.id + " joins the system");
 
         defaultClient.listen(context, defaultClientRequestHandler, context.listenPort);
-        reliableClient.listen(context, reliableClientRequestHandler, context.listenPort);
+        reliableClient.listen(context, reliableClientRequestHandler, context.filesListenPort);
 
         defaultClient.broadcast(startConverter.encode(Command.START, new StartMessage(InetAddress.getLocalHost(), context.listenPort)));
     }

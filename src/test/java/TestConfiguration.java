@@ -28,7 +28,7 @@ public class TestConfiguration extends Configuration {
     @Override
     public SystemContext getContext() {
         try {
-            SystemContext context = new SystemContext(nodeId(InetAddress.getLocalHost(), port), port);
+            SystemContext context = new SystemContext(nodeId(InetAddress.getLocalHost(), port), port, port + 1);
             context.setLeader(leader);
             return context;
         } catch (UnknownHostException e) {

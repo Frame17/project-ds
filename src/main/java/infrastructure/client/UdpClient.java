@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static configuration.Configuration.DEFAULT_LISTEN_PORT;
 
 public class UdpClient implements RemoteClient<DatagramPacket> {
+    public static final int PACKET_SIZE = 32768;
     private final static Logger LOG = LogManager.getLogger(UdpClient.class);
     private final ExecutorService listenExecutor = Executors.newSingleThreadExecutor();
     private final AtomicBoolean closed = new AtomicBoolean(false);
@@ -50,8 +51,7 @@ public class UdpClient implements RemoteClient<DatagramPacket> {
             try (DatagramSocket socket = new DatagramSocket(port)) {
                 LOG.info("Listening for udp packets on {}", port);
                 while (!Thread.currentThread().isInterrupted()) {
-                    int size = 1024;
-                    DatagramPacket packet = new DatagramPacket(new byte[size], size);
+                    DatagramPacket packet = new DatagramPacket(new byte[PACKET_SIZE], PACKET_SIZE);
                     socket.receive(packet);
                     requestHandler.handle(context, packet);
                 }
