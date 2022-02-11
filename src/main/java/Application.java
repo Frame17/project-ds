@@ -10,8 +10,8 @@ public class Application {
     private final static Logger LOG = LogManager.getLogger(Application.class);
 
     public static void main(String[] args) throws IOException {
-        LOG.info("Starting node");
-        Node node = new Node(new Configuration());
+        LOG.info("Starting client");
+        Node node = new Node(new Configuration(args));
         node.joinSystem();
     }
 }

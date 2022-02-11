@@ -4,22 +4,23 @@ import infrastructure.Node;
 import infrastructure.client.ReliableOrderedUdpClient;
 import infrastructure.client.RemoteClient;
 import infrastructure.client.UdpClient;
-import infrastructure.converter.FileDeletionPayloadConverter;
-import infrastructure.converter.FileEditConverter;
-import infrastructure.converter.FileUploadConverter;
-import infrastructure.converter.ResendPayloadConverter;
+import infrastructure.converter.*;
 import infrastructure.system.Leader;
+import infrastructure.system.RemoteNode;
 import infrastructure.system.SystemContext;
 import infrastructure.system.message.FileDeletionMessage;
 import infrastructure.system.message.FileEditMessage;
+import infrastructure.system.message.FileReadMessage;
 import infrastructure.system.message.FileUploadMessage;
 import org.junit.jupiter.api.*;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -57,17 +58,25 @@ public class FeaturesTest {
 
     @Test
     void fileUploadTest() throws IOException, InterruptedException {
-        final RemoteClient<DatagramPacket> client = new ReliableOrderedUdpClient(new ResendPayloadConverter(), new UdpClient(), new Configuration().getContext());
+        final RemoteClient<DatagramPacket> client = new ReliableOrderedUdpClient(new ResendPayloadConverter(), new UdpClient(), new Configuration(new String[]{}).getContext());
         FileUploadConverter converter = new FileUploadConverter();
+        FileReadConverter fileReadConverter = new FileReadConverter();
         FileUploadMessage message = new FileUploadMessage("abc", "abc".getBytes(StandardCharsets.UTF_8));
         client.unicast(converter.encode(Command.FILE_UPLOAD, message), leader.ip(), leader.port() + 1);
 
-        // todo - read
+        client.unicast(fileReadConverter.encode(Command.FILE_READ, new FileReadMessage("abc", null, new RemoteNode(InetAddress.getLocalHost(), 4713))),
+                leader.ip(), leader.port() + 1);
+
+        DatagramSocket socket = new DatagramSocket(4713);
+        DatagramPacket datagramPacket = new DatagramPacket(new byte[100], 100);
+        socket.receive(datagramPacket);
+        FileReadMessage readMessage = fileReadConverter.decode(Arrays.copyOfRange(datagramPacket.getData(), 4, datagramPacket.getData().length));
+        System.out.println();
     }
 
     @Test
     void fileEditTest() throws IOException {
-        final RemoteClient<DatagramPacket> client = new ReliableOrderedUdpClient(new ResendPayloadConverter(), new UdpClient(), new Configuration().getContext());
+        final RemoteClient<DatagramPacket> client = new ReliableOrderedUdpClient(new ResendPayloadConverter(), new UdpClient(), new Configuration(new String[]{}).getContext());
         FileUploadConverter uploadConverter = new FileUploadConverter();
         FileEditConverter editConverter = new FileEditConverter();
         FileUploadMessage uploadMessage = new FileUploadMessage("abc", "abc".getBytes(StandardCharsets.UTF_8));
@@ -80,7 +89,7 @@ public class FeaturesTest {
 
     @Test
     void fileDeleteTest() throws IOException, InterruptedException {
-        final RemoteClient<DatagramPacket> client = new ReliableOrderedUdpClient(new ResendPayloadConverter(), new UdpClient(), new Configuration().getContext());
+        final RemoteClient<DatagramPacket> client = new ReliableOrderedUdpClient(new ResendPayloadConverter(), new UdpClient(), new Configuration(new String[]{}).getContext());
         FileUploadConverter converter = new FileUploadConverter();
         FileUploadMessage message = new FileUploadMessage("abc", "abc".getBytes(StandardCharsets.UTF_8));
         client.unicast(converter.encode(Command.FILE_UPLOAD, message), leader.ip(), leader.port() + 1);

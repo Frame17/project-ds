@@ -7,6 +7,7 @@ import infrastructure.client.UdpClient;
 import infrastructure.converter.*;
 import infrastructure.handler.message.tcp.FileDeletionMessageHandler;
 import infrastructure.handler.message.tcp.FileEditMessageHandler;
+import infrastructure.handler.message.tcp.FileReadMessageHandler;
 import infrastructure.handler.message.tcp.FileUploadMessageHandler;
 import infrastructure.handler.message.udp.*;
 import infrastructure.handler.request.RequestHandler;
@@ -25,6 +26,15 @@ public class Configuration {
     private SystemContext context = null;
     public static final int DEFAULT_LISTEN_PORT = 4711;
     public static final int DEFAULT_FILES_LISTEN_PORT = 4712;
+    private boolean defaultLeader = false;
+
+    public Configuration(String[] args) {
+        for (String arg : args) {
+            if ("LEADER".equals(arg) || "leader".equals(arg)) {
+                this.defaultLeader = true;
+            }
+        }
+    }
 
     public RequestHandler<DatagramPacket> getDefaultClientRequestHandler() {
         return new UdpRequestHandler(udpMessageHandlers(getDefaultClient()));
@@ -55,6 +65,7 @@ public class Configuration {
         messageHandlers.put(Command.FILE_UPLOAD, new FileUploadMessageHandler(client, new FileUploadConverter()));
         messageHandlers.put(Command.FILE_EDIT, new FileEditMessageHandler(client, new FileEditConverter()));
         messageHandlers.put(Command.FILE_DELETE, new FileDeletionMessageHandler(client, new FileDeletionPayloadConverter()));
+        messageHandlers.put(Command.FILE_READ, new FileReadMessageHandler(client, new FileReadConverter()));
         return messageHandlers;
     }
 
