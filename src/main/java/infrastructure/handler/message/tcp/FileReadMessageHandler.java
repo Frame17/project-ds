@@ -2,7 +2,10 @@ package infrastructure.handler.message.tcp;
 
 import infrastructure.Command;
 import infrastructure.client.RemoteClient;
+import infrastructure.converter.PayloadConverter;
 import infrastructure.system.*;
+import infrastructure.system.message.FileReadDataMessage;
+import infrastructure.system.message.FileReadMessage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -26,35 +29,25 @@ public class FileReadMessageHandler implements TcpMessageHandler {
 
     private final RemoteClient<byte[]> client;
 
-    public FileReadMessageHandler(RemoteClient<byte[]> client) {
+    private final PayloadConverter<FileReadMessage> fileReadPayloadConverter;
+    private final PayloadConverter<FileReadDataMessage> fileReadDataPayloadConverter;
+
+    public FileReadMessageHandler(RemoteClient<byte[]> client,PayloadConverter<FileReadMessage> fileReadPayloadConverter, PayloadConverter<FileReadDataMessage> fileReadDataPayloadConverter) {
         this.client = client;
+        this.fileReadPayloadConverter = fileReadPayloadConverter;
+        this.fileReadDataPayloadConverter = fileReadDataPayloadConverter;
     }
 
     @Override
     public void handle(SystemContext context, byte[] message, RemoteNode sender) {
-        ByteBuffer buffer = ByteBuffer.wrap(message, 1, message.length - 1);
-        int fileNameLength = buffer.getInt();
-        byte[] fileNameBytes = new byte[fileNameLength];
-        buffer.get(fileNameBytes);
 
-        // IP of the initial requester
-        byte[] ip = new byte[4 * Byte.BYTES];
-        buffer.get(ip);
-        InetAddress requesterAddress = null;
+        FileReadMessage fileReadMessage = fileReadPayloadConverter.decode(message);
 
-        try {
-            requesterAddress = InetAddress.getByAddress(ip);
-        } catch (UnknownHostException e) {
-            throw new RuntimeException(e);
-        }
-
-        String fileName = new String(fileNameBytes, StandardCharsets.UTF_8);
-
-        LOG.info("File-Read-Request {} from {}", fileName, sender.ip().getHostAddress());
+        LOG.info("File-Read-Request {} from {}", fileReadMessage.fileName(), sender.ip().getHostAddress());
 
         if (context.isLeader()) {
 
-            List<FileChunk> fileChunks = context.getLeaderContext().chunksDistributionTable.get(fileName);
+            List<FileChunk> fileChunks = context.getLeaderContext().chunksDistributionTable.get(fileReadMessage.fileName());
 
             // Filter chunks, get each Chunk::name only once... can happen, if replication is enabled...
             // Sort the Chunks...
@@ -65,51 +58,43 @@ public class FileReadMessageHandler implements TcpMessageHandler {
                                     o.name().substring(o.name().lastIndexOf('-') +1 ))))
                     .toList();
 
-            FileRequest fileRequest = new FileRequest(fileName, new ArrayList<>());
+            FileRequest fileRequest = new FileRequest(fileReadMessage.fileName(), new ArrayList<>());
 
-            // Ask for every chunk...
+            // Ask the RemoteNodes for each chunk
             for (FileChunk chunk : distinctChunks) {
-
-                byte[] chunkName = chunk.name().getBytes(StandardCharsets.UTF_8);
-
-                ByteBuffer messageBuffer = ByteBuffer.allocate(Byte.BYTES + Integer.BYTES + chunkName.length + ip.length);
-                messageBuffer.put(Command.FILE_READ.command);
-                messageBuffer.putInt(chunkName.length);
-                messageBuffer.put(chunkName);
-                messageBuffer.put(ip);
-
                 try {
-                    client.unicast(messageBuffer.array(), chunk.node().ip(), chunk.node().port());
-                    fileRequest.chunks().add(new Pair<>(chunk, null));
+                    byte[] chunkData = null;
 
+                    // If the chunk is stored locally, read the file direct
+                    if(IdService.nodeId(chunk.node().ip(), chunk.node().port()).equals(context.id)){
+                        chunkData = readFile(chunk.name());
+                    }else{
+                        FileReadMessage fileReadMessageSend = new FileReadMessage(chunk.name(), fileReadMessage.ip(), fileReadMessage.port());
+                        client.unicast(fileReadPayloadConverter.encode(Command.FILE_READ, fileReadMessageSend), chunk.node().ip(), chunk.node().port());
+                    }
+
+                    fileRequest.chunks().add(new Pair<>(chunk, chunkData));
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
             }
 
-
-            if (!context.getLeaderContext().fileReadRequest.containsKey(requesterAddress)) {
-                context.getLeaderContext().fileReadRequest.put(requesterAddress, new ArrayList<>());
+            RemoteNode requesterRemoteNode = new RemoteNode(fileReadMessage.ip(), fileReadMessage.port());
+            if (!context.getLeaderContext().fileReadRequest.containsKey(requesterRemoteNode)) {
+                context.getLeaderContext().fileReadRequest.put(requesterRemoteNode, new ArrayList<>());
             }
-            context.getLeaderContext().fileReadRequest.get(requesterAddress).add(fileRequest);
+            // Add new FileRequest to the list of the RemoteNode
+            context.getLeaderContext().fileReadRequest.get(requesterRemoteNode).add(fileRequest);
 
 
         } else {
             try {
                 // Read File from Disk
+                byte[] fileBytes = readFile(fileReadMessage.fileName());
 
-                byte[] fileBytes = readFile(fileName);
-
-                ByteBuffer fileBuffer = ByteBuffer.allocate(Byte.BYTES + Integer.BYTES + fileNameBytes.length + ip.length + fileBytes.length );
-                fileBuffer.put(Command.FILE_READ_DATA.command);
-                fileBuffer.putInt(fileNameBytes.length);
-                fileBuffer.put(fileNameBytes);
-                fileBuffer.put(ip);
-                fileBuffer.put(fileBytes);
-
-                client.unicast(fileBuffer.array(), sender.ip(), sender.port());
-
-
+                FileReadDataMessage fileReadDataMessage = new FileReadDataMessage(
+                        fileReadMessage.fileName(),fileBytes,fileReadMessage.ip(), fileReadMessage.port());
+                client.unicast(fileReadDataPayloadConverter.encode(Command.FILE_READ_DATA, fileReadDataMessage), sender.ip(), sender.port());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

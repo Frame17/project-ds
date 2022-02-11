@@ -17,6 +17,9 @@ public class LeaderContext {
      */
     public final HashMap<String, List<FileChunk>> chunksDistributionTable = new HashMap<>();
 
-
-    public final HashMap<InetAddress, List<FileRequest>> fileReadRequest = new HashMap<>();
+    /**
+     * Defines a mapping, between a RemoteNode (here client) which has "requested" a file, to many FileRequests
+     * It can happen, that a RemoteNode(client) requests multiple files at the same time...
+     */
+    public final HashMap<RemoteNode, List<FileRequest>> fileReadRequest = new HashMap<>();
 }

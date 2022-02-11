@@ -64,8 +64,8 @@ public class Configuration {
     private Map<Command, TcpMessageHandler> tcpMessageHandlers(RemoteClient<byte[]> client) {
         HashMap<Command, TcpMessageHandler> messageHandlers = new HashMap<>();
         messageHandlers.put(Command.FILE_UPLOAD, new FileUploadMessageHandler(client));
-        messageHandlers.put(Command.FILE_READ, new FileReadMessageHandler(client));
-        messageHandlers.put(Command.FILE_READ_DATA, new FileReadDataMessageHandler(client));
+        messageHandlers.put(Command.FILE_READ, new FileReadMessageHandler(client, new FileReadPayloadConverter(), new FileReadDataPayloadConverter()));
+        messageHandlers.put(Command.FILE_READ_DATA, new FileReadDataMessageHandler(client, new FileReadDataPayloadConverter()));
         return messageHandlers;
     }
 
