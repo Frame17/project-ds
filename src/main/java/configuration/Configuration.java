@@ -5,8 +5,8 @@ import infrastructure.client.ReliableOrderedUdpClient;
 import infrastructure.client.RemoteClient;
 import infrastructure.client.UdpClient;
 import infrastructure.converter.*;
-import infrastructure.handler.message.tcp.FileEditMessageHandler;
 import infrastructure.handler.message.tcp.FileDeletionMessageHandler;
+import infrastructure.handler.message.tcp.FileEditMessageHandler;
 import infrastructure.handler.message.tcp.FileUploadMessageHandler;
 import infrastructure.handler.message.udp.*;
 import infrastructure.handler.request.RequestHandler;
@@ -54,7 +54,7 @@ public class Configuration {
         HashMap<Command, UdpMessageHandler> messageHandlers = new HashMap<>();
         messageHandlers.put(Command.FILE_UPLOAD, new FileUploadMessageHandler(client, new FileUploadConverter()));
         messageHandlers.put(Command.FILE_EDIT, new FileEditMessageHandler(client, new FileEditConverter()));
-        messageHandlers.put(Command.FILE_DELETE, new FileDeletionMessageHandler(client, new FileDeletionPayloadConverter() ));
+        messageHandlers.put(Command.FILE_DELETE, new FileDeletionMessageHandler(client, new FileDeletionPayloadConverter()));
         return messageHandlers;
     }
 

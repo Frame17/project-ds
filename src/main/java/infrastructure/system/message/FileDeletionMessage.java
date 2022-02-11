@@ -1,5 +1,5 @@
 package infrastructure.system.message;
 
 
-public record FileDeletionMessage(Integer FileNameLength, String Filename) {
+public record FileDeletionMessage(String filename) {
 }

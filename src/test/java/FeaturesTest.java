@@ -4,11 +4,13 @@ import infrastructure.Node;
 import infrastructure.client.ReliableOrderedUdpClient;
 import infrastructure.client.RemoteClient;
 import infrastructure.client.UdpClient;
+import infrastructure.converter.FileDeletionPayloadConverter;
 import infrastructure.converter.FileEditConverter;
 import infrastructure.converter.FileUploadConverter;
 import infrastructure.converter.ResendPayloadConverter;
 import infrastructure.system.Leader;
 import infrastructure.system.SystemContext;
+import infrastructure.system.message.FileDeletionMessage;
 import infrastructure.system.message.FileEditMessage;
 import infrastructure.system.message.FileUploadMessage;
 import org.junit.jupiter.api.*;
@@ -75,6 +77,23 @@ public class FeaturesTest {
 
         // todo - read
     }
+
+    @Test
+    void fileDeleteTest() throws IOException, InterruptedException {
+        final RemoteClient<DatagramPacket> client = new ReliableOrderedUdpClient(new ResendPayloadConverter(), new UdpClient(), new Configuration().getContext());
+        FileUploadConverter converter = new FileUploadConverter();
+        FileUploadMessage message = new FileUploadMessage("abc", "abc".getBytes(StandardCharsets.UTF_8));
+        client.unicast(converter.encode(Command.FILE_UPLOAD, message), leader.ip(), leader.port() + 1);
+
+        FileDeletionPayloadConverter deletionConverter = new FileDeletionPayloadConverter();
+        FileDeletionMessage deletionMessage = new FileDeletionMessage("abc");
+        client.unicast(deletionConverter.encode(Command.FILE_DELETE, deletionMessage), leader.ip(), leader.port() + 1);
+
+        Thread.sleep(5000);
+
+        // todo - read
+    }
+
 
     private static int randomPort() {
         return random.nextInt(55_535) + 10_000;

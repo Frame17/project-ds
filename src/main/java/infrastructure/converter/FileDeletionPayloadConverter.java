@@ -14,16 +14,18 @@ public class FileDeletionPayloadConverter implements PayloadConverter<FileDeleti
         byte[] fileNameBytes = new byte[fileNameLength];
         buffer.get(fileNameBytes);
         String fileName = new String(fileNameBytes, StandardCharsets.UTF_8);
-        return new FileDeletionMessage(fileNameLength, fileName);
+
+        return new FileDeletionMessage(fileName);
     }
 
     @Override
     public byte[] encode(Command command, FileDeletionMessage message) {
-        ByteBuffer messageBuffer = ByteBuffer.allocate(Byte.BYTES + Integer.BYTES + message.Filename().length());
+        byte[] fileNameBytes = message.filename().getBytes(StandardCharsets.UTF_8);
+        ByteBuffer messageBuffer = ByteBuffer.allocate(Byte.BYTES + Integer.BYTES + fileNameBytes.length);
         messageBuffer.put(command.command);
-        messageBuffer.putInt(message.FileNameLength());
-        byte[] fileNameBytes = message.Filename().getBytes(StandardCharsets.UTF_8);
+        messageBuffer.putInt(fileNameBytes.length);
         messageBuffer.put(fileNameBytes);
-        return new byte[0];
+
+        return messageBuffer.array();
     }
 }
