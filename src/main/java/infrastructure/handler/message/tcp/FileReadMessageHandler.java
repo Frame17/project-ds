@@ -48,14 +48,17 @@ public class FileReadMessageHandler implements UdpMessageHandler {
                 FileReadRequest fileReadRequest = context.getLeaderContext().fileReadRequests.get(fileReadMessage.fileName()).first();
                 requestFileChunks(context, fileReadMessage, fileReadRequest);
             } else {
-                FileReadRequest fileReadRequest = context.getLeaderContext().fileReadRequests
-                        .get(fileReadMessage.fileName().substring(0, fileReadMessage.fileName().lastIndexOf('-')))
-                        .first();
-                fileReadRequest.chunks().put(fileReadMessage.fileName(), fileReadMessage.file());
+                String fileName = fileReadMessage.fileName().substring(0, fileReadMessage.fileName().lastIndexOf('-'));
+                if (context.getLeaderContext().fileReadRequests.containsKey(fileName)) {
+                    FileReadRequest fileReadRequest = context.getLeaderContext().fileReadRequests
+                            .get(fileName)
+                            .first();
+                    fileReadRequest.chunks().put(fileReadMessage.fileName(), fileReadMessage.file());
 
-                if (fileReadRequest.isComplete()) {
-                    sendReadReplies(context, fileReadMessage);
-                    context.getLeaderContext().fileReadRequests.remove(fileReadRequest.fileName());
+                    if (fileReadRequest.isComplete()) {
+                        sendReadReplies(context, fileReadMessage);
+                        context.getLeaderContext().fileReadRequests.remove(fileReadRequest.fileName());
+                    }
                 }
             }
         } else {
