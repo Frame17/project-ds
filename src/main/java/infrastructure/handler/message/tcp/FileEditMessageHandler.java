@@ -62,7 +62,7 @@ public class FileEditMessageHandler implements UdpMessageHandler {
 
     private void replaceFile(String fileName, byte[] content) {
         try {
-            Path path = new File(fileName).toPath();
+            Path path = new File("/files" + fileName).toPath();
             Files.delete(path);
             Files.write(path, content);
         } catch (IOException e) {

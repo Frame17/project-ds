@@ -115,6 +115,6 @@ public class FileReadMessageHandler implements UdpMessageHandler {
     }
 
     private byte[] readFile(String fileName) throws IOException {
-        return Files.readAllBytes(new File(fileName).toPath());
+        return Files.readAllBytes(new File("files/" + fileName).toPath());
     }
 }

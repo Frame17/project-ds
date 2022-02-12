@@ -64,7 +64,7 @@ public class FileDeletionMessageHandler implements UdpMessageHandler {
     }
 
     private void deleteFile(String fileName, SystemContext context) {
-        File fileToDelete = new File(fileName);
+        File fileToDelete = new File("files/" + fileName);
         if (fileToDelete.delete()) {
             LOG.info(context.id + " file chunk {} has been deleted", fileName);
         } else {
