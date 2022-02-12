@@ -83,7 +83,7 @@ public class FileUploadMessageHandler implements UdpMessageHandler {
 
     private void saveFile(String fileName, byte[] content) {
         try {
-            Files.write(new File(fileName).toPath(), content);
+            Files.write(new File("files/" + fileName).toPath(), content);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

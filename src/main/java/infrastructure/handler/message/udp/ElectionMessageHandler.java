@@ -9,12 +9,14 @@ import infrastructure.system.message.RecoveryMessage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Collections;
-import java.util.HashMap;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -70,10 +72,27 @@ public class ElectionMessageHandler implements UdpMessageHandler {
         context.setElectionParticipant(false);
         context.setLeader(new Leader(InetAddress.getLocalHost(), context.listenPort));
         context.getSelf().setupLeader(context);
+        HashMap<String, List<FileChunk>> chunksDistributionTable = context.getLeaderContext().chunksDistributionTable;
+
+        File files = new File("files/");
+        RemoteNode current = new RemoteNode(InetAddress.getLocalHost(), context.listenPort);
+        if (files.exists() && files.listFiles() != null) {
+            Arrays.stream(files.listFiles())
+                    .map(File::getName)
+                    .forEach(chunk -> {
+                        String fileName = chunk.substring(0, chunk.lastIndexOf('-'));
+                        if (chunksDistributionTable.containsKey(fileName)) {
+                            chunksDistributionTable.get(fileName).add(new FileChunk(chunk, current));
+                        } else {
+                            ArrayList<FileChunk> fileChunks = new ArrayList<>();
+                            fileChunks.add(new FileChunk(chunk, current));
+                            chunksDistributionTable.put(fileName, fileChunks);
+                        }
+                    });
+        }
 
         try {
-            client.broadcast(recoveryConverter.encode(Command.RECOVERY,
-                    new RecoveryMessage(new RemoteNode(InetAddress.getLocalHost(), context.listenPort), Collections.emptyList())));
+            client.broadcast(recoveryConverter.encode(Command.RECOVERY, new RecoveryMessage(current, null)));
         } catch (IOException e) {
             e.printStackTrace();
         }

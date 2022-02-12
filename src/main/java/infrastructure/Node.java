@@ -43,8 +43,6 @@ public class Node {
 
         context.setSelf(this);
 
-        context.setSelf(this);
-
         if (context.isLeader()) {
             setupLeader(context);
         }

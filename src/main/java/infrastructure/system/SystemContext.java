@@ -1,5 +1,6 @@
 package infrastructure.system;
 
+import infrastructure.Node;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -10,6 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class SystemContext {
     private final static Logger LOG = LogManager.getLogger(SystemContext.class);
     public final String id;
+    private Node self;
     public final int listenPort;
     public final int filesListenPort;
     private Leader leader;
@@ -68,5 +70,13 @@ public class SystemContext {
 
     public ReliableClientContext getReliableClientContext() {
         return reliableClientContext;
+    }
+
+    public Node getSelf() {
+        return self;
+    }
+
+    public void setSelf(Node self) {
+        this.self = self;
     }
 }

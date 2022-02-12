@@ -17,7 +17,7 @@ public class HealthPayloadConverter implements PayloadConverter<HealthMessage> {
         buffer.get(address);
 
         try {
-            return new HealthMessage(new RemoteNode(InetAddress.getByAddress(address) ,buffer.getInt()));
+            return new HealthMessage(new RemoteNode(InetAddress.getByAddress(address), buffer.getInt()));
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);
         }
