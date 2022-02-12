@@ -47,7 +47,7 @@ public class FileUploadMessageHandler implements UdpMessageHandler {
             for (int i = 0; i < REPLICATION_NUMBER && i < aliveNodes.size(); i++) {
                 RemoteNode target = aliveNodes.get(i);
                 try {
-                    client.unicast(converter.encode(Command.FILE_UPLOAD, new FileUploadMessage(fileUploadMessage.fileName() + '-' + (i + 1), chunk)),
+                    client.unicast(converter.encode(Command.FILE_UPLOAD, new FileUploadMessage(fileUploadMessage.fileName() + "-0", chunk)),
                             target.ip(), target.port() + 1);
                     fileChunks.add(new FileChunk(fileUploadMessage.fileName() + "-0", target));
                 } catch (IOException e) {
@@ -56,7 +56,7 @@ public class FileUploadMessageHandler implements UdpMessageHandler {
             }
 
             for (int i = 0; i < aliveNodes.size(); i++) {
-                chunk = new byte[chunkSize];
+                chunk = new byte[Math.min(chunkSize, buffer.remaining())];
                 buffer.get(chunk);
 
                 try {

@@ -17,7 +17,9 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -56,7 +58,7 @@ public class Node {
         defaultClient.listen(context, defaultClientRequestHandler, context.listenPort);
         reliableClient.listen(context, reliableClientRequestHandler, context.filesListenPort);
 
-        defaultClient.broadcast(startConverter.encode(Command.START, new StartMessage(InetAddress.getLocalHost(), context.listenPort)));
+        defaultClient.broadcast(startConverter.encode(Command.START, new StartMessage(getLocalIp(), context.listenPort)));
     }
 
     public void setupLeader(SystemContext context) {
@@ -104,6 +106,15 @@ public class Node {
             } catch (IOException e) {
                 LOG.error(e);
             }
+        }
+    }
+
+    public static InetAddress getLocalIp() {
+        try(final DatagramSocket socket = new DatagramSocket()){
+            socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
+            return socket.getLocalAddress();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 

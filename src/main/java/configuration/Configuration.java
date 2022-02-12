@@ -1,6 +1,7 @@
 package configuration;
 
 import infrastructure.Command;
+import infrastructure.Node;
 import infrastructure.client.ReliableOrderedUdpClient;
 import infrastructure.client.RemoteClient;
 import infrastructure.client.UdpClient;
@@ -12,6 +13,7 @@ import infrastructure.handler.message.tcp.FileUploadMessageHandler;
 import infrastructure.handler.message.udp.*;
 import infrastructure.handler.request.RequestHandler;
 import infrastructure.handler.request.UdpRequestHandler;
+import infrastructure.system.Leader;
 import infrastructure.system.SystemContext;
 
 import java.net.DatagramPacket;
@@ -80,13 +82,12 @@ public class Configuration {
     }
 
     public SystemContext getContext() {
-        try {
-            if (this.context == null) {
-                context = new SystemContext(nodeId(InetAddress.getLocalHost(), DEFAULT_LISTEN_PORT), DEFAULT_LISTEN_PORT, DEFAULT_FILES_LISTEN_PORT);
+        if (this.context == null) {
+            context = new SystemContext(nodeId(Node.getLocalIp(), DEFAULT_LISTEN_PORT), DEFAULT_LISTEN_PORT, DEFAULT_FILES_LISTEN_PORT);
+            if (defaultLeader) {
+                context.setLeader(new Leader(Node.getLocalIp(), context.listenPort));
             }
-            return context;
-        } catch (UnknownHostException e) {
-            throw new RuntimeException(e);
         }
+        return context;
     }
 }

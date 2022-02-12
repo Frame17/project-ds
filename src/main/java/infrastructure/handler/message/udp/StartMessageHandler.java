@@ -1,6 +1,7 @@
 package infrastructure.handler.message.udp;
 
 import infrastructure.Command;
+import infrastructure.Node;
 import infrastructure.client.RemoteClient;
 import infrastructure.converter.PayloadConverter;
 import infrastructure.system.IdService;
@@ -39,6 +40,7 @@ public class StartMessageHandler implements UdpMessageHandler {
     public void handle(SystemContext context, DatagramPacket packet) {
         try {
             StartMessage startMessage = startConverter.decode(packet.getData());
+            LOG.info("Received StartMessage from {}:{}", startMessage.ip(), startMessage.port());
 
             if (!context.id.equals(IdService.nodeId(startMessage.ip(), startMessage.port()))) {      // do not handle own broadcast message
                 RemoteNode sender = new RemoteNode(startMessage.ip(), startMessage.port());
@@ -49,7 +51,7 @@ public class StartMessageHandler implements UdpMessageHandler {
 
                     context.getLeaderContext().aliveNodes.put(sender, 0);
                 } else {
-                    RemoteNode current = new RemoteNode(InetAddress.getLocalHost(), context.listenPort);
+                    RemoteNode current = new RemoteNode(Node.getLocalIp(), context.listenPort);
 
                     if (context.getNeighbour() == null) {
                         client.unicast(neighbourInfoConverter.encode(Command.NEIGHBOUR_INFO, new NeighbourInfoMessage(current)),

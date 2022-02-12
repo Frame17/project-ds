@@ -1,6 +1,7 @@
 package infrastructure.client;
 
 import infrastructure.Command;
+import infrastructure.Node;
 import infrastructure.converter.PayloadConverter;
 import infrastructure.handler.request.RequestHandler;
 import infrastructure.system.Pair;
@@ -105,7 +106,7 @@ public class ReliableOrderedUdpClient implements RemoteClient<DatagramPacket> {
         } else if (sequenceNumber > receivedSequenceNumber) {
             reliableClientContext.holdBackQueue.add(new Pair<>(sequenceNumber, packet));
 
-            ResendMessage resendMessage = new ResendMessage(new RemoteNode(InetAddress.getLocalHost(), context.listenPort), receivedSequenceNumber);
+            ResendMessage resendMessage = new ResendMessage(new RemoteNode(Node.getLocalIp(), context.listenPort), receivedSequenceNumber);
             baseClient.unicast(converter.encode(Command.RESEND, resendMessage), sender.ip(), sender.port());
             return false;
         }

@@ -1,6 +1,7 @@
 package infrastructure.handler.message.udp;
 
 import infrastructure.Command;
+import infrastructure.Node;
 import infrastructure.client.RemoteClient;
 import infrastructure.converter.PayloadConverter;
 import infrastructure.system.*;
@@ -41,7 +42,7 @@ public class ElectionMessageHandler implements UdpMessageHandler {
 
             if (compare > 0) {
                 if (!context.isElectionParticipant()) {
-                    client.unicast(electionConverter.encode(Command.ELECTION, new ElectionMessage(new RemoteNode(InetAddress.getLocalHost(), context.listenPort), false)),
+                    client.unicast(electionConverter.encode(Command.ELECTION, new ElectionMessage(new RemoteNode(Node.getLocalIp(), context.listenPort), false)),
                             context.getNeighbour().ip(), context.getNeighbour().port());
                     context.setElectionParticipant(true);
                 }
@@ -69,7 +70,7 @@ public class ElectionMessageHandler implements UdpMessageHandler {
 
     private void leaderSetup(SystemContext context) throws UnknownHostException {
         context.setElectionParticipant(false);
-        context.setLeader(new Leader(InetAddress.getLocalHost(), context.listenPort));
+        context.setLeader(new Leader(Node.getLocalIp(), context.listenPort));
         context.getSelf().setupLeader(context);
         HashMap<String, List<FileChunk>> chunksDistributionTable = context.getLeaderContext().chunksDistributionTable;
 

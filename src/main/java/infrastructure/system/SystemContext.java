@@ -36,12 +36,7 @@ public class SystemContext {
     }
 
     public boolean isLeader() {
-        try {
-            return leader != null && leader.equals(new Leader(InetAddress.getLocalHost(), listenPort));
-        } catch (UnknownHostException e) {
-            LOG.error(e);
-            throw new RuntimeException(e);
-        }
+        return leader != null && leader.equals(new Leader(Node.getLocalIp(), listenPort));
     }
 
     public LeaderContext getLeaderContext() {

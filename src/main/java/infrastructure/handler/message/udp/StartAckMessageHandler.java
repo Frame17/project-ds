@@ -1,6 +1,7 @@
 package infrastructure.handler.message.udp;
 
 import infrastructure.Command;
+import infrastructure.Node;
 import infrastructure.client.RemoteClient;
 import infrastructure.converter.ElectionPayloadConverter;
 import infrastructure.converter.PayloadConverter;
@@ -72,12 +73,12 @@ public class StartAckMessageHandler implements UdpMessageHandler {
             LOG.info(context.id + " starts leader election");
 
             if (context.getNeighbour() == null) {   // this client is the only one left in the system
-                context.setLeader(new Leader(InetAddress.getLocalHost(), context.listenPort));
+                context.setLeader(new Leader(Node.getLocalIp(), context.listenPort));
                 context.setLeaderContext(new LeaderContext());
                 LOG.info(context.id + " assigns itself leader");
             } else {
                 context.setElectionParticipant(true);
-                ElectionMessage message = new ElectionMessage(new RemoteNode(InetAddress.getLocalHost(), context.listenPort), false);
+                ElectionMessage message = new ElectionMessage(new RemoteNode(Node.getLocalIp(), context.listenPort), false);
 
                 client.unicast(new ElectionPayloadConverter().encode(Command.ELECTION, message),
                         context.getNeighbour().ip(), context.getNeighbour().port());

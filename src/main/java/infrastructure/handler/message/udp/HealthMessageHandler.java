@@ -25,6 +25,7 @@ public class HealthMessageHandler implements UdpMessageHandler {
     public void handle(SystemContext context, DatagramPacket packet) {
         if (context.isLeader()) {
             HealthMessage message = converter.decode(packet.getData());
+            LOG.info("Received HealthMessage from {}:{}", message.node().ip(), message.node().port());
             context.getLeaderContext().aliveNodes.put(message.node(), 0);
 
             try {
