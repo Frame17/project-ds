@@ -62,6 +62,7 @@ public class StartMessageHandler implements UdpMessageHandler {
                                 startMessage.ip(), startMessage.port());
                         context.setNeighbour(sender);
                     }
+                    LOG.info("Set neighbour {}:{}", sender.ip(), sender.port());
                 }
             }
         } catch (IOException e) {

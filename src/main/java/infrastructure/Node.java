@@ -69,6 +69,7 @@ public class Node {
             Map<RemoteNode, Integer> aliveNodes = context.getLeaderContext().aliveNodes;
             aliveNodes.forEach((node, healthCounter) -> {
                 if (healthCounter > 3) {
+                    LOG.info("Data node {}:{} is dead, removing from alive nodes", node.ip(), node.port());
                     if (aliveNodes.size() > 1) {
                         reassignNeighbour(aliveNodes, node);
                     }
