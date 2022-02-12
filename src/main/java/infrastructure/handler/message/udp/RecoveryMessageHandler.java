@@ -50,7 +50,7 @@ public class RecoveryMessageHandler implements UdpMessageHandler {
             try {
                 RemoteNode current = new RemoteNode(InetAddress.getLocalHost(), context.listenPort);
                 client.unicast(converter.encode(Command.RECOVERY, new RecoveryMessage(current, getStoredChunks())),
-                        context.getLeader().ip(), context.getLeader().port());
+                        recoveryMessage.node().ip(), recoveryMessage.node().port());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

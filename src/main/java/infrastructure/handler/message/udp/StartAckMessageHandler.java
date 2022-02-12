@@ -48,14 +48,16 @@ public class StartAckMessageHandler implements UdpMessageHandler {
         LOG.info(context.id + " starts health executor");
         threadPool.scheduleAtFixedRate(() -> {
             try {
-                LOG.info(context.id + " sends health message to {}:{}", context.getLeader().ip(), context.getLeader().port());
+                if (!context.isLeader()) {
+                    LOG.info(context.id + " sends health message to {}:{}", context.getLeader().ip(), context.getLeader().port());
 
-                client.unicast(healthPayloadConverter.encode(Command.HEALTH, new HealthMessage(new RemoteNode(InetAddress.getLocalHost(), context.listenPort))),
-                        context.getLeader().ip(), context.getLeader().port());
-                int leaderHealthCounter = context.healthCounter.incrementAndGet();
-                if (leaderHealthCounter > 3) {
-                    startLeaderElection(context);
-                    context.healthCounter.set(0);
+                    client.unicast(healthPayloadConverter.encode(Command.HEALTH, new HealthMessage(new RemoteNode(InetAddress.getLocalHost(), context.listenPort))),
+                            context.getLeader().ip(), context.getLeader().port());
+                    int leaderHealthCounter = context.healthCounter.incrementAndGet();
+                    if (leaderHealthCounter > 3) {
+                        startLeaderElection(context);
+                        context.healthCounter.set(0);
+                    }
                 }
             } catch (Exception e) {
                 LOG.error(e);

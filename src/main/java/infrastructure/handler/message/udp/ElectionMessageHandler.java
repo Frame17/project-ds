@@ -14,12 +14,10 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 
 public class ElectionMessageHandler implements UdpMessageHandler {
     private final static Logger LOG = LogManager.getLogger(ElectionMessageHandler.class);
@@ -57,6 +55,7 @@ public class ElectionMessageHandler implements UdpMessageHandler {
             } else {
                 if (electionMessage.isLeader()) {
                     context.setLeader(new Leader(electionMessage.candidate().ip(), electionMessage.candidate().port()));
+                    context.healthCounter.set(0);
                 } else {
                     client.unicast(electionConverter.encode(Command.ELECTION, electionMessage),
                             context.getNeighbour().ip(), context.getNeighbour().port());

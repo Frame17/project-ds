@@ -64,7 +64,7 @@ public class Node {
 
         ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(1);
         threadPool.scheduleAtFixedRate(() -> {
-            HashMap<RemoteNode, Integer> aliveNodes = context.getLeaderContext().aliveNodes;
+            Map<RemoteNode, Integer> aliveNodes = context.getLeaderContext().aliveNodes;
             aliveNodes.forEach((node, healthCounter) -> {
                 if (healthCounter > 3) {
                     if (aliveNodes.size() > 1) {
@@ -76,7 +76,6 @@ public class Node {
                     aliveNodes.replace(node, healthCounter + 1);
                 }
             });
-
         }, 0, 3, TimeUnit.SECONDS);
     }
 

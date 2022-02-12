@@ -85,7 +85,7 @@ public class ApplicationTest {
     }
 
     @Test
-    public void leaderElectionTest() throws IOException {
+    public void leaderElectionTest() throws IOException, InterruptedException {
         Node node = new Node(new TestConfiguration(randomPort(), null, system));
         node.joinSystem();
         system.add(node);
@@ -93,6 +93,8 @@ public class ApplicationTest {
         system.get(0).shutdown();
         await().atMost(20, TimeUnit.SECONDS)
                 .until(() -> system.get(1).context.isLeader() || system.get(2).context.isLeader());
+        System.out.println();
+        Thread.sleep(10_000);
     }
 
     @Test
@@ -122,6 +124,18 @@ public class ApplicationTest {
         Thread.sleep(10_000);
 
         await().atMost(15, TimeUnit.SECONDS).until(() -> system.get(1).context.getNeighbour() == null);
+    }
+
+    @Test
+    public void dataNodeCrashTest() throws IOException, InterruptedException {
+        int port = randomPort();
+        Node node = new Node(new TestConfiguration(port, null, system));
+        node.joinSystem();
+        node.shutdown();
+
+        await().atMost(15, TimeUnit.SECONDS).until(() ->
+                !system.get(0).context.getLeaderContext()
+                        .aliveNodes.containsKey(new RemoteNode(InetAddress.getLocalHost(), port)));
     }
 
     private int randomPort() {

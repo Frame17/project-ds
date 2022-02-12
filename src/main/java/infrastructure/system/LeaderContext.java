@@ -2,13 +2,15 @@ package infrastructure.system;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class LeaderContext {
     /**
      * Defines a correspondence client -> liveliness counter.
      * When the counter is greater than a retry number - the client is considered dead.
      */
-    public final HashMap<RemoteNode, Integer> aliveNodes = new HashMap<>();
+    public final Map<RemoteNode, Integer> aliveNodes = new ConcurrentHashMap<>();
 
     /**
      * Defines a correspondence file -> nodes where it's chunks are stored.
