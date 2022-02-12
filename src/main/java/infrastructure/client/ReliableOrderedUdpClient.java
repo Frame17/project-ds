@@ -96,7 +96,7 @@ public class ReliableOrderedUdpClient implements RemoteClient<DatagramPacket> {
         ByteBuffer buffer = ByteBuffer.wrap(packet.getData());
         int sequenceNumber = buffer.getInt();
         buffer.get();
-        RemoteNode sender = new RemoteNode(packet.getAddress(), packet.getPort());
+        RemoteNode sender = new RemoteNode(packet.getAddress(), 0);
         Integer receivedSequenceNumber = reliableClientContext.receiveSequences.getOrDefault(sender, 0);
 
         if (sequenceNumber == receivedSequenceNumber) {
