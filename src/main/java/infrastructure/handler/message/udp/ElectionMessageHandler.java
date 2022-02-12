@@ -75,7 +75,7 @@ public class ElectionMessageHandler implements UdpMessageHandler {
         HashMap<String, List<FileChunk>> chunksDistributionTable = context.getLeaderContext().chunksDistributionTable;
 
         File files = new File("files/");
-        RemoteNode current = new RemoteNode(InetAddress.getLocalHost(), context.listenPort);
+        RemoteNode current = new RemoteNode(Node.getLocalIp(), context.listenPort);
         if (files.exists() && files.listFiles() != null) {
             Arrays.stream(files.listFiles())
                     .map(File::getName)

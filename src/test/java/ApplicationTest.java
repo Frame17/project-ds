@@ -31,7 +31,7 @@ public class ApplicationTest {
     @BeforeEach
     void setUp() throws InterruptedException {
         try {
-            leader = new Leader(InetAddress.getLocalHost(), DEFAULT_LISTEN_PORT);
+            leader = new Leader(Node.getLocalIp(), DEFAULT_LISTEN_PORT);
 
             system = new ArrayList<>();
             Node node = new Node(new TestConfiguration(DEFAULT_LISTEN_PORT, leader, system));
@@ -80,7 +80,7 @@ public class ApplicationTest {
         Thread.sleep(5000);
         HealthPayloadConverter healthPayloadConverter = new HealthPayloadConverter();
         verify(remoteClient, atLeastOnce())
-                .unicast(eq(healthPayloadConverter.encode(Command.HEALTH, new HealthMessage(new RemoteNode(InetAddress.getLocalHost(), node.context.listenPort)))),
+                .unicast(eq(healthPayloadConverter.encode(Command.HEALTH, new HealthMessage(new RemoteNode(Node.getLocalIp(), node.context.listenPort)))),
                         eq(leader.ip()), eq(leader.port()));
     }
 
@@ -106,9 +106,9 @@ public class ApplicationTest {
         await().atMost(5, TimeUnit.SECONDS)
                 .until(() ->
                         system.get(1).context.getNeighbour() != null
-                                && system.get(1).context.getNeighbour().equals(new RemoteNode(InetAddress.getLocalHost(), node.context.listenPort))
+                                && system.get(1).context.getNeighbour().equals(new RemoteNode(Node.getLocalIp(), node.context.listenPort))
                                 && node.context.getNeighbour() != null
-                                && node.context.getNeighbour().equals(new RemoteNode(InetAddress.getLocalHost(), system.get(1).context.listenPort)));
+                                && node.context.getNeighbour().equals(new RemoteNode(Node.getLocalIp(), system.get(1).context.listenPort)));
     }
 
     @Test
@@ -118,7 +118,7 @@ public class ApplicationTest {
         system.add(node);
 
         await().atMost(5, TimeUnit.SECONDS)
-                .until(() -> node.context.getNeighbour().equals(new RemoteNode(InetAddress.getLocalHost(), system.get(1).context.listenPort)));
+                .until(() -> node.context.getNeighbour().equals(new RemoteNode(Node.getLocalIp(), system.get(1).context.listenPort)));
 
         node.shutdown();
         Thread.sleep(10_000);
@@ -135,7 +135,7 @@ public class ApplicationTest {
 
         await().atMost(15, TimeUnit.SECONDS).until(() ->
                 !system.get(0).context.getLeaderContext()
-                        .aliveNodes.containsKey(new RemoteNode(InetAddress.getLocalHost(), port)));
+                        .aliveNodes.containsKey(new RemoteNode(Node.getLocalIp(), port)));
     }
 
     private int randomPort() {

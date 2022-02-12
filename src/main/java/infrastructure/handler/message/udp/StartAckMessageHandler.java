@@ -52,7 +52,7 @@ public class StartAckMessageHandler implements UdpMessageHandler {
                 if (!context.isLeader()) {
                     LOG.info(context.id + " sends health message to {}:{}", context.getLeader().ip(), context.getLeader().port());
 
-                    client.unicast(healthPayloadConverter.encode(Command.HEALTH, new HealthMessage(new RemoteNode(InetAddress.getLocalHost(), context.listenPort))),
+                    client.unicast(healthPayloadConverter.encode(Command.HEALTH, new HealthMessage(new RemoteNode(Node.getLocalIp(), context.listenPort))),
                             context.getLeader().ip(), context.getLeader().port());
                     int leaderHealthCounter = context.healthCounter.incrementAndGet();
                     if (leaderHealthCounter > 3) {

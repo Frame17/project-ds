@@ -34,7 +34,7 @@ public class FeaturesTest {
     @BeforeAll
     static void beforeAll() throws InterruptedException {
         try {
-            leader = new Leader(InetAddress.getLocalHost(), DEFAULT_LISTEN_PORT);
+            leader = new Leader(Node.getLocalIp(), DEFAULT_LISTEN_PORT);
 
             system = new ArrayList<>();
             Node node = new Node(new TestConfiguration(DEFAULT_LISTEN_PORT, leader, system));
@@ -64,7 +64,7 @@ public class FeaturesTest {
         FileUploadMessage message = new FileUploadMessage("abc", "abc".getBytes(StandardCharsets.UTF_8));
         client.unicast(converter.encode(Command.FILE_UPLOAD, message), leader.ip(), leader.port() + 1);
 
-        client.unicast(fileReadConverter.encode(Command.FILE_READ, new FileReadMessage("abc", null, new RemoteNode(InetAddress.getLocalHost(), 4713))),
+        client.unicast(fileReadConverter.encode(Command.FILE_READ, new FileReadMessage("abc", null, new RemoteNode(Node.getLocalIp(), 4713))),
                 leader.ip(), leader.port() + 1);
 
         DatagramSocket socket = new DatagramSocket(4713);

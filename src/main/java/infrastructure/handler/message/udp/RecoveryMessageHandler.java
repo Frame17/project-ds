@@ -1,6 +1,7 @@
 package infrastructure.handler.message.udp;
 
 import infrastructure.Command;
+import infrastructure.Node;
 import infrastructure.client.RemoteClient;
 import infrastructure.converter.PayloadConverter;
 import infrastructure.system.FileChunk;
@@ -48,7 +49,7 @@ public class RecoveryMessageHandler implements UdpMessageHandler {
             }
         } else {
             try {
-                RemoteNode current = new RemoteNode(InetAddress.getLocalHost(), context.listenPort);
+                RemoteNode current = new RemoteNode(Node.getLocalIp(), context.listenPort);
                 client.unicast(converter.encode(Command.RECOVERY, new RecoveryMessage(current, getStoredChunks())),
                         recoveryMessage.node().ip(), recoveryMessage.node().port());
             } catch (IOException e) {

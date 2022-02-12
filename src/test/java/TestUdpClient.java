@@ -15,7 +15,7 @@ public class TestUdpClient extends UdpClient {
     public void broadcast(byte[] message) {
         system.forEach(node -> {
             try {
-                super.unicast(message, InetAddress.getLocalHost(), node.context.listenPort);
+                super.unicast(message, Node.getLocalIp(), node.context.listenPort);
             } catch (IOException e) {
                 e.printStackTrace();
             }

@@ -34,7 +34,7 @@ public class FileEdit {
         client.unicast(uploadConverter.encode(Command.FILE_UPLOAD, uploadMessage), Node.getLocalIp(), 4712);
         client.unicast(editConverter.encode(Command.FILE_EDIT, editMessage), Node.getLocalIp(), 4712);
 
-        client.unicast(fileReadConverter.encode(Command.FILE_READ, new FileReadMessage("abc", null, new RemoteNode(InetAddress.getLocalHost(), 4713))),
+        client.unicast(fileReadConverter.encode(Command.FILE_READ, new FileReadMessage("abc", null, new RemoteNode(Node.getLocalIp(), 4713))),
                 Node.getLocalIp(), 4712);
 
         DatagramSocket socket = new DatagramSocket(4713);
