@@ -75,16 +75,23 @@ public class FeaturesTest {
     }
 
     @Test
-    void fileEditTest() throws IOException {
+    void fileEditTest() throws IOException, InterruptedException {
         final RemoteClient<DatagramPacket> client = new ReliableOrderedUdpClient(new ResendPayloadConverter(), new UdpClient(), new Configuration(new String[]{}).getContext());
         FileUploadConverter uploadConverter = new FileUploadConverter();
         FileEditConverter editConverter = new FileEditConverter();
+        FileReadConverter fileReadConverter = new FileReadConverter();
         FileUploadMessage uploadMessage = new FileUploadMessage("abc", "abc".getBytes(StandardCharsets.UTF_8));
         FileEditMessage editMessage = new FileEditMessage("abc", "adc".getBytes(StandardCharsets.UTF_8));
         client.unicast(uploadConverter.encode(Command.FILE_UPLOAD, uploadMessage), leader.ip(), leader.port() + 1);
         client.unicast(editConverter.encode(Command.FILE_EDIT, editMessage), leader.ip(), leader.port() + 1);
+        client.unicast(fileReadConverter.encode(Command.FILE_READ, new FileReadMessage("abc", null, new RemoteNode(Node.getLocalIp(), 4713))),
+                leader.ip(), leader.port() + 1);
 
-        // todo - read
+        DatagramSocket socket = new DatagramSocket(4713);
+        DatagramPacket datagramPacket = new DatagramPacket(new byte[100], 100);
+        socket.receive(datagramPacket);
+        FileReadMessage readMessage = fileReadConverter.decode(Arrays.copyOfRange(datagramPacket.getData(), 4, datagramPacket.getData().length));
+        System.out.println(readMessage.fileName() + ": " + new String(readMessage.file(), StandardCharsets.UTF_8));
     }
 
     @Test
@@ -97,10 +104,6 @@ public class FeaturesTest {
         FileDeletionPayloadConverter deletionConverter = new FileDeletionPayloadConverter();
         FileDeletionMessage deletionMessage = new FileDeletionMessage("abc");
         client.unicast(deletionConverter.encode(Command.FILE_DELETE, deletionMessage), leader.ip(), leader.port() + 1);
-
-        Thread.sleep(5000);
-
-        // todo - read
     }
 
 
