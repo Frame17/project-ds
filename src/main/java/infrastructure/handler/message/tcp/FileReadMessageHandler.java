@@ -33,20 +33,22 @@ public class FileReadMessageHandler implements UdpMessageHandler {
 
         if (context.isLeader()) {
             if (fileReadMessage.file() == null) {  // user request
-                HashMap<String, byte[]> chunks = new HashMap<>();
-                context.getLeaderContext().chunksDistributionTable.get(fileReadMessage.fileName())
-                        .forEach(chunk -> chunks.put(chunk.name(), new byte[0]));
+                HashMap<String, List<FileChunk>> chunksDistributionTable = context.getLeaderContext().chunksDistributionTable;
+                if (chunksDistributionTable.containsKey(fileReadMessage.fileName())) {
+                    HashMap<String, byte[]> chunks = new HashMap<>();
+                    chunksDistributionTable.get(fileReadMessage.fileName()).forEach(chunk -> chunks.put(chunk.name(), new byte[0]));
 
-                if (context.getLeaderContext().fileReadRequests.containsKey(fileReadMessage.fileName())) {
-                    context.getLeaderContext().fileReadRequests.get(fileReadMessage.fileName()).second().add(fileReadMessage.client());
-                } else {
-                    ArrayList<RemoteNode> clients = new ArrayList<>();
-                    clients.add(fileReadMessage.client());
-                    context.getLeaderContext().fileReadRequests.put(fileReadMessage.fileName(), new Pair<>(new FileReadRequest(fileReadMessage.fileName(), chunks), clients));
+                    if (context.getLeaderContext().fileReadRequests.containsKey(fileReadMessage.fileName())) {
+                        context.getLeaderContext().fileReadRequests.get(fileReadMessage.fileName()).second().add(fileReadMessage.client());
+                    } else {
+                        ArrayList<RemoteNode> clients = new ArrayList<>();
+                        clients.add(fileReadMessage.client());
+                        context.getLeaderContext().fileReadRequests.put(fileReadMessage.fileName(), new Pair<>(new FileReadRequest(fileReadMessage.fileName(), chunks), clients));
+                    }
+
+                    FileReadRequest fileReadRequest = context.getLeaderContext().fileReadRequests.get(fileReadMessage.fileName()).first();
+                    requestFileChunks(context, fileReadMessage, fileReadRequest);
                 }
-
-                FileReadRequest fileReadRequest = context.getLeaderContext().fileReadRequests.get(fileReadMessage.fileName()).first();
-                requestFileChunks(context, fileReadMessage, fileReadRequest);
             } else {
                 String fileName = fileReadMessage.fileName().substring(0, fileReadMessage.fileName().lastIndexOf('-'));
                 if (context.getLeaderContext().fileReadRequests.containsKey(fileName)) {

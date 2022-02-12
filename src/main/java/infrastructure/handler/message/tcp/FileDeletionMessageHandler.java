@@ -45,7 +45,7 @@ public class FileDeletionMessageHandler implements UdpMessageHandler {
                     RemoteNode target = fileChunk.node();
                     FileDeletionMessage chunkMessage = new FileDeletionMessage(chunkName);
                     if (context.id.equals(IdService.nodeId(target.ip(), target.port()))) {
-                        deleteFile(deletionMessage.filename(), context);
+                        deleteFile(chunkName, context);
                     } else {
                         try {
                             client.unicast(converter.encode(Command.FILE_DELETE, chunkMessage), target.ip(), target.port() + 1);
