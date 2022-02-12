@@ -2,7 +2,6 @@ package infrastructure.converter;
 
 import infrastructure.Command;
 import infrastructure.system.RemoteNode;
-import infrastructure.system.message.HealthMessage;
 import infrastructure.system.message.RecoveryMessage;
 
 import java.net.InetAddress;
