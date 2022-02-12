@@ -80,16 +80,12 @@ public class Configuration {
     }
 
     public SystemContext getContext() {
-        try {
-            if (this.context == null) {
-                context = new SystemContext(nodeId(Node.getLocalIp(), DEFAULT_LISTEN_PORT), DEFAULT_LISTEN_PORT, DEFAULT_FILES_LISTEN_PORT);
-                if (defaultLeader) {
-                    context.setLeader(new Leader(InetAddress.getLocalHost(), context.listenPort));
-                }
+        if (this.context == null) {
+            context = new SystemContext(nodeId(Node.getLocalIp(), DEFAULT_LISTEN_PORT), DEFAULT_LISTEN_PORT, DEFAULT_FILES_LISTEN_PORT);
+            if (defaultLeader) {
+                context.setLeader(new Leader(Node.getLocalIp(), context.listenPort));
             }
-            return context;
-        } catch (UnknownHostException e) {
-            throw new RuntimeException(e);
         }
+        return context;
     }
 }
