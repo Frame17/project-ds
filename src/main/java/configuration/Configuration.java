@@ -1,6 +1,7 @@
 package configuration;
 
 import infrastructure.Command;
+import infrastructure.Node;
 import infrastructure.client.ReliableOrderedUdpClient;
 import infrastructure.client.RemoteClient;
 import infrastructure.client.UdpClient;
@@ -81,7 +82,7 @@ public class Configuration {
     public SystemContext getContext() {
         try {
             if (this.context == null) {
-                context = new SystemContext(nodeId(InetAddress.getLocalHost(), DEFAULT_LISTEN_PORT), DEFAULT_LISTEN_PORT, DEFAULT_FILES_LISTEN_PORT);
+                context = new SystemContext(nodeId(Node.getLocalIp(), DEFAULT_LISTEN_PORT), DEFAULT_LISTEN_PORT, DEFAULT_FILES_LISTEN_PORT);
                 if (defaultLeader) {
                     context.setLeader(new Leader(InetAddress.getLocalHost(), context.listenPort));
                 }
