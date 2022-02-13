@@ -37,7 +37,7 @@ public class FileEditMessageHandler implements UdpMessageHandler {
             int chunkSize = (int) ceil((double) fileEditMessage.file().length / (1 + context.getLeaderContext().aliveNodes.size()));
             Map<String, byte[]> fileChunks = new HashMap<>();
             for (int i = 0; i < context.getLeaderContext().aliveNodes.size() + 1; i++) {
-                byte[] chunk = new byte[chunkSize];
+                byte[] chunk = new byte[Math.min(chunkSize, buffer.remaining())];
                 buffer.get(chunk);
                 fileChunks.put(fileEditMessage.fileName() + '-' + i, chunk);
             }

@@ -45,8 +45,6 @@ public class Node {
 
         context.setSelf(this);
 
-        context.setSelf(this);
-
         if (context.isLeader()) {
             setupLeader(context);
         }
@@ -75,6 +73,9 @@ public class Node {
                     }
 
                     aliveNodes.remove(node);
+                    context.getReliableClientContext().sendSequences.remove(node);
+                    context.getReliableClientContext().receiveSequences.remove(node);
+                    context.getReliableClientContext().previousMessages.remove(node);
                 } else {
                     aliveNodes.replace(node, healthCounter + 1);
                 }

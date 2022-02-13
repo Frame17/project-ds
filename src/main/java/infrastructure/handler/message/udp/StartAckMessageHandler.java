@@ -56,8 +56,13 @@ public class StartAckMessageHandler implements UdpMessageHandler {
                             context.getLeader().ip(), context.getLeader().port());
                     int leaderHealthCounter = context.healthCounter.incrementAndGet();
                     if (leaderHealthCounter > 3) {
+                        RemoteNode leader = new RemoteNode(context.getLeader().ip(), context.getLeader().port());
                         startLeaderElection(context);
+
                         context.healthCounter.set(0);
+                        context.getReliableClientContext().sendSequences.remove(leader);
+                        context.getReliableClientContext().receiveSequences.remove(leader);
+                        context.getReliableClientContext().previousMessages.remove(leader);
                     }
                 }
             } catch (Exception e) {
