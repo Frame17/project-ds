@@ -7,6 +7,8 @@ import infrastructure.handler.message.udp.UdpMessageHandler;
 import infrastructure.system.IdService;
 import infrastructure.system.SystemContext;
 import infrastructure.system.message.FileEditMessage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,6 +22,7 @@ import java.util.Map;
 import static java.lang.Math.ceil;
 
 public class FileEditMessageHandler implements UdpMessageHandler {
+    private final static Logger LOG = LogManager.getLogger(FileEditMessageHandler.class);
     private final RemoteClient<DatagramPacket> client;
     private final PayloadConverter<FileEditMessage> converter;
 
@@ -31,6 +34,7 @@ public class FileEditMessageHandler implements UdpMessageHandler {
     @Override
     public void handle(SystemContext context, DatagramPacket packet) {
         FileEditMessage fileEditMessage = converter.decode(packet.getData());
+        LOG.info("File-Edit-Request {}", fileEditMessage.fileName());
 
         if (context.isLeader()) {
             ByteBuffer buffer = ByteBuffer.wrap(fileEditMessage.file());
