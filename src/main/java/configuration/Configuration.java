@@ -17,8 +17,6 @@ import infrastructure.system.Leader;
 import infrastructure.system.SystemContext;
 
 import java.net.DatagramPacket;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,7 +52,7 @@ public class Configuration {
         messageHandlers.put(Command.HEALTH, new HealthMessageHandler(client, healthPayloadConverter));
         messageHandlers.put(Command.HEALTH_ACK, new HealthAckMessageHandler());
         messageHandlers.put(Command.ELECTION, new ElectionMessageHandler(client, new ElectionPayloadConverter(), recoveryConverter));
-        messageHandlers.put(Command.NEIGHBOUR_INFO, new NeighbourInfoMessageHandler(neighbourInfoPayloadConverter));
+        messageHandlers.put(Command.NEIGHBOUR_INFO, new NeighbourInfoMessageHandler(client, neighbourInfoPayloadConverter));
         messageHandlers.put(Command.RECOVERY, new RecoveryMessageHandler(client, recoveryConverter));
 
         return messageHandlers;

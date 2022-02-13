@@ -4,6 +4,7 @@ import infrastructure.Command;
 import infrastructure.Node;
 import infrastructure.client.RemoteClient;
 import infrastructure.converter.ElectionPayloadConverter;
+import infrastructure.converter.NeighbourInfoPayloadConverter;
 import infrastructure.converter.PayloadConverter;
 import infrastructure.system.Leader;
 import infrastructure.system.LeaderContext;
@@ -11,6 +12,7 @@ import infrastructure.system.RemoteNode;
 import infrastructure.system.SystemContext;
 import infrastructure.system.message.ElectionMessage;
 import infrastructure.system.message.HealthMessage;
+import infrastructure.system.message.NeighbourInfoMessage;
 import infrastructure.system.message.StartAckMessage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -63,6 +65,11 @@ public class StartAckMessageHandler implements UdpMessageHandler {
                         context.getReliableClientContext().sendSequences.remove(leader);
                         context.getReliableClientContext().receiveSequences.remove(leader);
                         context.getReliableClientContext().previousMessages.remove(leader);
+                    }
+
+                    if (context.getNeighbour() != null && context.getNeighbour().equals(new RemoteNode(context.getLeader().ip(), context.getLeader().port()))) {
+                        client.unicast(new NeighbourInfoPayloadConverter().encode(Command.NEIGHBOUR_INFO, new NeighbourInfoMessage(new RemoteNode(Node.getLocalIp(), context.listenPort))),
+                                context.getLeader().ip(), context.getLeader().port());
                     }
                 }
             } catch (Exception e) {
