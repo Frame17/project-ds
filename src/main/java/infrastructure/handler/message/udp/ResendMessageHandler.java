@@ -26,14 +26,14 @@ public class ResendMessageHandler implements UdpMessageHandler {
         ReliableClientContext reliableClientContext = context.getReliableClientContext();
         
         try {
-            Queue<Pair<Integer, byte[]>> holdBackQueue = reliableClientContext.previousMessages.get(resendMessage.ip());
+            Queue<Pair<Integer, byte[]>> holdBackQueue = reliableClientContext.previousMessages.get(resendMessage.node());
             Pair<Integer, byte[]> packet = holdBackQueue.peek();
             while (packet.first() < resendMessage.id()) {
                 holdBackQueue.poll();
                 packet = holdBackQueue.peek();
             }
 
-            reliableClient.unicast(packet.second(), resendMessage.ip().ip(), resendMessage.ip().port());
+            reliableClient.unicast(packet.second(), resendMessage.node().ip(), resendMessage.node().port());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
