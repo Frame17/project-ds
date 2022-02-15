@@ -31,6 +31,7 @@ public class FileDeletionMessageHandler implements UdpMessageHandler {
     @Override
     public void handle(SystemContext context, DatagramPacket packet) {
         FileDeletionMessage deletionMessage = converter.decode(packet.getData());
+        LOG.info("File-Delete-Request {}", deletionMessage.filename());
         //when the leader receives a deletion message he needs to find all the nodes which have chunks of the data. Then it resends the deletion message with the corresponding file fileName
         //to the found nodes
         if (context.isLeader()) {

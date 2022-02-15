@@ -17,8 +17,6 @@ import infrastructure.system.Leader;
 import infrastructure.system.SystemContext;
 
 import java.net.DatagramPacket;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,14 +45,15 @@ public class Configuration {
         HealthPayloadConverter healthPayloadConverter = new HealthPayloadConverter();
         NeighbourInfoPayloadConverter neighbourInfoPayloadConverter = new NeighbourInfoPayloadConverter();
         RecoveryPayloadConverter recoveryConverter = new RecoveryPayloadConverter();
+        ElectionPayloadConverter electionConverter = new ElectionPayloadConverter();
 
         HashMap<Command, UdpMessageHandler> messageHandlers = new HashMap<>();
         messageHandlers.put(Command.START, new StartMessageHandler(client, new StartPayloadConverter(), startAckPayloadConverter, neighbourInfoPayloadConverter));
-        messageHandlers.put(Command.START_ACK, new StartAckMessageHandler(client, startAckPayloadConverter, healthPayloadConverter));
+        messageHandlers.put(Command.START_ACK, new StartAckMessageHandler(client, startAckPayloadConverter, electionConverter, neighbourInfoPayloadConverter, healthPayloadConverter));
         messageHandlers.put(Command.HEALTH, new HealthMessageHandler(client, healthPayloadConverter));
         messageHandlers.put(Command.HEALTH_ACK, new HealthAckMessageHandler());
-        messageHandlers.put(Command.ELECTION, new ElectionMessageHandler(client, new ElectionPayloadConverter(), recoveryConverter));
-        messageHandlers.put(Command.NEIGHBOUR_INFO, new NeighbourInfoMessageHandler(neighbourInfoPayloadConverter));
+        messageHandlers.put(Command.ELECTION, new ElectionMessageHandler(client, electionConverter, recoveryConverter));
+        messageHandlers.put(Command.NEIGHBOUR_INFO, new NeighbourInfoMessageHandler(client, neighbourInfoPayloadConverter));
         messageHandlers.put(Command.RECOVERY, new RecoveryMessageHandler(client, recoveryConverter));
 
         return messageHandlers;
