@@ -1,5 +1,9 @@
 # JavaDistFS
 
+## Introduction
+
+Distributed file system implementation, created during the Distributed Systems course.
+
 ## Debug
 
 For easier debugging, start gradle task `jib:DockerBuild`.
